@@ -48,9 +48,24 @@ export const inventoryService = {
     },
 
     downloadInventoryExcel: async () => {
-        const response = await api.get('/components/download_excel/', {
-            responseType: 'blob'
-        });
-        return response;
+        try {
+            const response = await api.get('/components/download_excel/', {
+                responseType: 'blob' 
+            });
+
+            const url = window.URL.createObjectURL(new Blob([response.data]));
+            const link = document.createElement('a');
+            link.href = url;
+            link.setAttribute('download', `Inventario_Zervidtronics_${new Date().getTime()}.xlsx`);
+            document.body.appendChild(link);
+            link.click();
+            link.parentNode.removeChild(link);
+            window.URL.revokeObjectURL(url);
+
+            return true;
+        } catch (error) {
+            console.error("Error al descargar el archivo:", error);
+            throw error;
+        }
     }
 };
