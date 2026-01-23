@@ -1,11 +1,10 @@
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
-import { Cpu, Store, Calculator, Download, Box, LayoutGrid } from 'lucide-react';
+import { Cpu, Store, Calculator, Download, Box, LayoutGrid, Minus, Plus, Trash2 } from 'lucide-react';
 import { useWishlist } from '../context/WishlistContext';
-import { ProductCard } from '../../products/components/ProductCard';
 
 const WishlistPage = () => {
-    const { wishlists, loading } = useWishlist();
+    const { wishlists, loading, updateItemQuantity, toggleComponentInList } = useWishlist();
 
     const exportToPDF = (list) => {
         const doc = new jsPDF();
@@ -41,12 +40,11 @@ const WishlistPage = () => {
         doc.save(`Prototipo_${list.name}.pdf`);
     }
 
-    const groupComponentsByStore = (items) => {
+    const groupItemsByStore = (items) => {
         return items.reduce((acc, item) => {
-            const product = item.component;
-            const storeName = product.store_name || 'Almacén Central';
+            const storeName = item.component.store_name || 'Almacén Central';
             if (!acc[storeName]) acc[storeName] = [];
-            acc[storeName].push(product);
+            acc[storeName].push(item);
             return acc;
         }, {});
     };
@@ -63,7 +61,7 @@ const WishlistPage = () => {
     }
 
     return (
-        <div className="max-w-[1600px] mx-auto px-6 py-12">
+        <div className="max-w-[1400px] mx-auto px-6 py-12">
             <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-16">
                 <div>
                     <div className="flex items-center gap-3 mb-2">
@@ -84,7 +82,7 @@ const WishlistPage = () => {
             ) : (
                 wishlists.map((list) => {
                     const itemsToShow = list.items || [];
-                    const grouped = groupComponentsByStore(itemsToShow);
+                    const grouped = groupItemsByStore(itemsToShow);
 
                     return (
                         <section key={list.id} className="mb-20 animate-in fade-in slide-in-from-bottom-4 duration-700">
@@ -99,12 +97,12 @@ const WishlistPage = () => {
                                                 onClick={() => exportToPDF(list)}
                                                 className="group flex items-center gap-3 bg-white text-black px-6 py-3 rounded-xl hover:bg-purple-500 hover:text-white transition-all text-[10px] font-black uppercase tracking-widest"
                                             >
-                                                <Download size={14} className="group-hover:translate-y-0.5 transition-transform" /> 
+                                                <Download size={14} /> 
                                                 Exportar Blueprint
                                             </button>
                                             <div className="px-4 py-3 bg-[#1a1a1a] rounded-xl border border-gray-800">
                                                 <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest">
-                                                    {itemsToShow.length} Unidades en Sistema
+                                                    {itemsToShow.length} Componentes Únicos
                                                 </span>
                                             </div>
                                         </div>
@@ -126,19 +124,69 @@ const WishlistPage = () => {
                                         <p className="text-gray-600 font-bold uppercase tracking-widest text-[10px]">Lista de materiales vacía</p>
                                     </div>
                                 ) : (
-                                    Object.entries(grouped).map(([storeName, products]) => (
-                                        <div key={storeName} className="mb-12 last:mb-0">
-                                            <div className="flex items-center gap-4 mb-8">
-                                                <div className="h-[1px] flex-grow bg-gray-800"></div>
-                                                <div className="flex items-center gap-2 px-4 py-1.5 bg-gray-900 rounded-full border border-gray-800 text-gray-400">
-                                                    <Store size={14} />
-                                                    <span className="text-[10px] font-black uppercase tracking-widest">{storeName}</span>
-                                                </div>
-                                                <div className="h-[1px] flex-grow bg-gray-800"></div>
+                                    Object.entries(grouped).map(([storeName, items]) => (
+                                        <div key={storeName} className="mb-8 last:mb-0">
+                                            <div className="flex items-center gap-4 mb-6">
+                                                <Store size={14} className="text-purple-500" />
+                                                <span className="text-[10px] font-black uppercase tracking-[0.3em] text-gray-400">{storeName}</span>
+                                                <div className="h-[1px] flex-grow bg-gray-800/50"></div>
                                             </div>
-                                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
-                                                {products.map((product) => (
-                                                    <ProductCard key={product.id} product={product} />
+
+                                            <div className="space-y-3">
+                                                {items.map((item) => (
+                                                    <div key={item.id} className="flex flex-col md:flex-row items-center gap-6 p-4 bg-[#0a0a0a] border border-gray-800/50 rounded-2xl hover:border-purple-500/30 transition-all">
+                                                        {/* Imagen Mini */}
+                                                        <div className="w-16 h-16 rounded-xl overflow-hidden bg-gray-900 shrink-0">
+                                                            <img 
+                                                                src={item.component.image || 'https://via.placeholder.com/100'} 
+                                                                className="w-full h-full object-cover" 
+                                                                alt={item.component.name} 
+                                                            />
+                                                        </div>
+
+                                                        {/* Info Principal */}
+                                                        <div className="flex-grow text-center md:text-left">
+                                                            <h4 className="text-sm font-bold text-white uppercase tracking-tight">{item.component.name}</h4>
+                                                            <p className="text-[10px] text-gray-500 uppercase font-black tracking-widest">{item.component.category_name || 'General'}</p>
+                                                        </div>
+
+                                                        {/* Precio Unitario */}
+                                                        <div className="shrink-0 text-center">
+                                                            <p className="text-[9px] font-black text-gray-600 uppercase mb-1">Precio Unit.</p>
+                                                            <p className="text-sm font-black text-white">${item.component.price}</p>
+                                                        </div>
+
+                                                        {/* Control de Cantidad Minimalista */}
+                                                        {/* <div className="flex items-center bg-black border border-gray-800 rounded-xl p-1 shrink-0">
+                                                            <button 
+                                                                onClick={() => updateItemQuantity(list.id, item.component.id, item.quantity - 1)}
+                                                                className="p-2 hover:text-purple-500 text-gray-500 transition-colors"
+                                                            >
+                                                                <Minus size={14} />
+                                                            </button>
+                                                            <span className="w-10 text-center text-xs font-black text-white">{item.quantity}</span>
+                                                            <button 
+                                                                onClick={() => updateItemQuantity(list.id, item.component.id, item.quantity + 1)}
+                                                                className="p-2 hover:text-purple-500 text-gray-500 transition-colors"
+                                                            >
+                                                                <Plus size={14} />
+                                                            </button>
+                                                        </div> */}
+
+                                                        {/* Subtotal de Fila */}
+                                                        <div className="shrink-0 text-center min-w-[80px]">
+                                                            <p className="text-[9px] font-black text-purple-500/50 uppercase mb-1">Subtotal</p>
+                                                            <p className="text-sm font-black text-purple-400">${(item.quantity * item.component.price).toFixed(2)}</p>
+                                                        </div>
+
+                                                        {/* Eliminar */}
+                                                        <button 
+                                                            onClick={() => toggleComponentInList(list.id, item.component.id)}
+                                                            className="p-3 text-gray-600 hover:text-red-500 hover:bg-red-500/5 rounded-xl transition-all"
+                                                        >
+                                                            <Trash2 size={16} />
+                                                        </button>
+                                                    </div>
                                                 ))}
                                             </div>
                                         </div>

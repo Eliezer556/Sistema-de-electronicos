@@ -27,7 +27,6 @@ class UserSerializer(serializers.ModelSerializer):
         user = User.objects.create_user(**validated_data)
         return user
 
-# regjstro de tiendas
 class UserRegistrationSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True)
     store_name = serializers.CharField(write_only=True, required=False, allow_blank=True)
@@ -49,7 +48,6 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
         store_name = validated_data.pop('store_name', None)
         store_address = validated_data.pop('store_address', None)
         
-        # Garantiza que si algo falla al crear la tienda, el usuario tampoco se cree. Es "todo o nada",
         with transaction.atomic():
             user = User.objects.create_user(**validated_data)
             if user.role == 'proveedor' and store_name and store_address:

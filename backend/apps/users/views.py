@@ -11,7 +11,6 @@ class LoginView(TokenObtainPairView):
 class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
     
-    # Cambio de Formulario
     def get_serializer_class(self):
         if self.action == 'create':
             return UserRegistrationSerializer

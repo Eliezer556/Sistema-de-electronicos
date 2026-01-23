@@ -11,7 +11,7 @@ class ReviewSerializer(serializers.ModelSerializer):
 
 class WishlistItemSerializer(serializers.ModelSerializer):
     component = ComponentSerializer(read_only=True)
-    subtotal = serializers.SerializerMethodField()  #campo Multiplica el precio del componente por la cantidad 
+    subtotal = serializers.SerializerMethodField()
 
     class Meta:
         model = WishlistItem
@@ -31,7 +31,7 @@ class WishlistSerializer(serializers.ModelSerializer):
         read_only_fields = ['user']
 
     def get_total_budget(self, obj):
-        items = obj.wishlistitem_set.all() # listar todos los productos
+        items = obj.wishlistitem_set.all()
         return sum(item.quantity * item.component.price for item in items)
     
 from .models import StockNotification

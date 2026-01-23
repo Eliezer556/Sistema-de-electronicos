@@ -13,19 +13,17 @@ export const LoginForm = () => {
     
     const { login } = useAuth(); 
     const { fetchWishlists } = useWishlist(); 
-    
-    
+
     const handleSubmit = async (e) => {
-        e.preventDefault(); /*Preparación*/
+        e.preventDefault();
         setError('');
         setLoading(true);
         
-        const result = await login(email, password); /*Autenticación*/
+        const result = await login(email, password);
 
         if (result.success) {
-            if (fetchWishlists) await fetchWishlists();  /*Autenticación*/
+            if (fetchWishlists) await fetchWishlists(); 
             
-            /*Redirección por Roles*/
             const userRole = result.user?.role;
             if (userRole === 'admin') navigate('/admin/dashboard');
             else if (userRole === 'proveedor') navigate('/inventory');

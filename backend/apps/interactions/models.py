@@ -13,7 +13,7 @@ class Review(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        unique_together = ('user', 'store') #Restricción un usuario = reseña
+        unique_together = ('user', 'store')
 
     def __str__(self):
         return f"{self.user.email} - {self.store.name} ({self.rating}★)"

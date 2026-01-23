@@ -1,6 +1,7 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useProducts } from '../context/ProductContext';
 import { ProductCard } from './ProductCard';
+import { ProductDetail } from './ProductDetail';
 import { RefreshCcw, Cpu, SearchX, Store } from 'lucide-react';
 import { SearchBar } from './SearchBar';
 import { CategoryFilter } from './CategoryFilter';
@@ -16,6 +17,8 @@ export const ProductList = () => {
         searchTerm,
         setSearchTerm
     } = useProducts();
+
+    const [selectedProduct, setSelectedProduct] = useState(null);
 
     useEffect(() => {
         fetchData();
@@ -39,6 +42,16 @@ export const ProductList = () => {
                     <RefreshCcw size={16} /> Reiniciar Enlace
                 </button>
             </div>
+        );
+    }
+
+    // Lógica de renderizado condicional para el detalle
+    if (selectedProduct) {
+        return (
+            <ProductDetail 
+                product={selectedProduct} 
+                onBack={() => setSelectedProduct(null)} 
+            />
         );
     }
 
@@ -92,9 +105,6 @@ export const ProductList = () => {
                             ? `Búsqueda sin resultados: "${searchTerm}"`
                             : "No se encontraron componentes"}
                     </p>
-                    <p className="text-gray-500 mb-10 max-w-sm mx-auto text-sm leading-relaxed">
-                        Verifica el código del producto o cambia los parámetros de los filtros activos.
-                    </p>
                     <button
                         onClick={() => setSearchTerm('')}
                         className="text-purple-400 font-black text-[10px] uppercase tracking-[0.2em] hover:text-white transition-all py-3 px-8 border border-purple-500/30 rounded-xl hover:bg-purple-500/10 active:scale-95"
@@ -105,10 +115,14 @@ export const ProductList = () => {
             ) : (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
                     {products.map((product) => (
-                        <ProductCard key={product.id} product={product} />
+                        <ProductCard 
+                            key={product.id} 
+                            product={product} 
+                            onViewDetail={(p) => setSelectedProduct(p)} 
+                        />
                     ))}
                 </div>
             )}
         </div>
-    );
+    )
 };

@@ -30,7 +30,6 @@ class WishlistViewSet(viewsets.ModelViewSet):
         serializer.save(user=self.request.user)
 
     @action(detail=True, methods=['post'])
-    # Permite agregar o eliminar el producto de la lista
     def toggle_item(self, request, pk=None):
         wishlist = self.get_object()
         product_id = request.data.get('product_id')
@@ -45,7 +44,6 @@ class WishlistViewSet(viewsets.ModelViewSet):
         return Response(serializer.data)
 
     @action(detail=True, methods=['post'])
-    #  Permite cambiar la cantidad de un productos. 
     def update_quantity(self, request, pk=None):
         wishlist = self.get_object()
         product_id = request.data.get('product_id')
@@ -65,7 +63,6 @@ class WishlistViewSet(viewsets.ModelViewSet):
         return Response(serializer.data)
 
     @action(detail=True, methods=['get'])
-    # Genera un resumen para el PDF
     def export_budget(self, request, pk=None):
         wishlist = self.get_object()
         items = wishlist.wishlistitem_set.all()
@@ -88,7 +85,6 @@ class WishlistViewSet(viewsets.ModelViewSet):
         return Response(data)
 
     @action(detail=True, methods=['post'], url_path='notify-me')
-    # notificacion de alerta
     def notify_me(self, request, pk=None):
         product_id = request.data.get('product_id')
 
@@ -103,7 +99,6 @@ class WishlistViewSet(viewsets.ModelViewSet):
         return Response({'message': 'Ya tienes una alerta activa para este componente'}, status=status.HTTP_200_OK)
     
     @action(detail=False, methods=['get'], url_path='search-suggestions')
-    # busquedas
     def search_suggestions(self, request):
         popular_queries = SearchHistory.objects.values('query').annotate(
             total=Count('query')
@@ -128,7 +123,6 @@ class WishlistViewSet(viewsets.ModelViewSet):
             )
         return Response(status=status.HTTP_201_CREATED)
     
-# estadistica - Ad
 class AnalyticsViewSet(viewsets.ViewSet):
     permission_classes = [IsAdminUser]
 

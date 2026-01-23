@@ -6,7 +6,7 @@ class StoreSerializer(serializers.ModelSerializer):
     # Mostramos el email del dueño en lugar de solo su ID
     owner_email = serializers.ReadOnlyField(source='owner.email')
     
-    # Campos dinamicos de estadistica sobre la tienda
+    # Campos dinamicos de estadistica
     rating_average = serializers.SerializerMethodField()
     total_reviews = serializers.SerializerMethodField()
 

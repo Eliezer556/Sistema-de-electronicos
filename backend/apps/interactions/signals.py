@@ -4,7 +4,7 @@ from django.core.mail import send_mail
 from apps.inventory.models import Component
 from .models import StockNotification
 
-@receiver(post_save, sender=Component) #escucha
+@receiver(post_save, sender=Component)
 def notify_restock(sender, instance, **kwargs):
     if instance.stock > 0:
         notifications = StockNotification.objects.filter(

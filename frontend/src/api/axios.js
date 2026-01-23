@@ -5,8 +5,6 @@ const api = axios.create({
     headers: { 'Content-Type': 'application/json' },
 });
 
-/**/
-/*Peaje de seguridad: Revisa el localStorage buscando un token*/
 api.interceptors.request.use((config) => {
     const token = localStorage.getItem('token');
     if (token) {
@@ -15,17 +13,15 @@ api.interceptors.request.use((config) => {
     return config;
 });
 
-/*extintor*/
 api.interceptors.response.use(
     (response) => response,
     async (error) => {
-        /*pastilla del dia despues*/
         const originalRequest = error.config;
         const isAuthPath = originalRequest.url.includes('/users/login/') || 
                           originalRequest.url.includes('/users/register/');
 
         if (error.response?.status === 401 && !originalRequest._retry && !isAuthPath) {
-            originalRequest._retry = true;  /*Bloqueo de bucles*/
+            originalRequest._retry = true;
 
             try {
                 const refreshToken = localStorage.getItem('refresh_token');
@@ -33,7 +29,7 @@ api.interceptors.response.use(
 
                 const response = await axios.post('http://localhost:8000/api/token/refresh/', {
                     refresh: refreshToken
-                }); /*Petición de renovación*/
+                });
 
                 const { access } = response.data;
                 localStorage.setItem('token', access);

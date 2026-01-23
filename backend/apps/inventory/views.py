@@ -58,8 +58,7 @@ class ComponentViewSet(viewsets.ModelViewSet):
             
         serializer = self.get_serializer(recommended, many=True)
         return Response(serializer.data)
-    
-    # excel
+
     @action(detail=False, methods=['get'], permission_classes=[permissions.IsAuthenticated])
     def download_excel(self, request): 
         queryset = self.get_queryset()
