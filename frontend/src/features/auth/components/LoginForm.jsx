@@ -10,24 +10,24 @@ export const LoginForm = () => {
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
-    
-    const { login } = useAuth(); 
-    const { fetchWishlists } = useWishlist(); 
+
+    const { login } = useAuth();
+    const { fetchWishlists } = useWishlist();
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         setError('');
         setLoading(true);
-        
+
         const result = await login(email, password);
 
         if (result.success) {
-            if (fetchWishlists) await fetchWishlists(); 
-            
+            if (fetchWishlists) await fetchWishlists();
+
             const userRole = result.user?.role;
             if (userRole === 'admin') navigate('/admin/dashboard');
             else if (userRole === 'proveedor') navigate('/inventory');
-            else navigate('/'); 
+            else navigate('/');
         } else {
             setError(result.message || 'Credenciales inválidas. Intente de nuevo.');
         }
@@ -104,12 +104,18 @@ export const LoginForm = () => {
                 </form>
 
                 <div className="mt-10 pt-8 border-t border-gray-800/50 text-center">
-                    <p className="text-gray-600 text-xs font-medium uppercase tracking-tighter">
-                        ¿No tienes una cuenta activa? <br />
+                    <p className="text-gray-600 text-xs font-medium uppercase">
+                        {/* ¿No tienes una cuenta activa? <br /> */}
                         <Link to="/register" className="inline-block mt-2 text-blue-400 font-bold hover:text-blue-300 transition-colors">
                             Registrar nuevo usuario
                         </Link>
-                    </p>
+                        </p>
+                    <Link
+                        to="/forgot-passwword"
+                        className="text-[10px] font-bold text-gray-500 hover:text-blue-400 uppercase tracking-widest transition-colors"
+                    >
+                        ¿Olvidaste tu contraseña?
+                    </Link>
                 </div>
             </div>
         </div>

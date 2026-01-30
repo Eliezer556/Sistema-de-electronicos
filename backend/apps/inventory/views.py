@@ -10,6 +10,14 @@ from openpyxl import Workbook
 class ComponentFilter(django_filters.FilterSet):
     min_price = django_filters.NumberFilter(field_name="price", lookup_expr='gte')
     max_price = django_filters.NumberFilter(field_name="price", lookup_expr='lte')
+    
+    mpn = django_filters.CharFilter(field_name="mpn", lookup_expr='icontains')
+    
+    valor = django_filters.CharFilter(field_name="technical_specs__valor", lookup_expr='icontains')
+    voltaje = django_filters.CharFilter(field_name="technical_specs__voltaje", lookup_expr='icontains')
+    tolerancia = django_filters.CharFilter(field_name="technical_specs__tolerancia", lookup_expr='icontains')
+    encapsulado = django_filters.CharFilter(field_name="technical_specs__encapsulado", lookup_expr='icontains')
+    montaje = django_filters.CharFilter(field_name="technical_specs__montaje", lookup_expr='iexact')
 
     class Meta:
         model = Component

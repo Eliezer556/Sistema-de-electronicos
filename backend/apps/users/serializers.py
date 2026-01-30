@@ -16,7 +16,7 @@ class UserSerializer(serializers.ModelSerializer):
         model = User
         fields = ['id', 'username', 'email', 'role', 'password']
         extra_kwargs = {
-            'password': {'write_only': True} # La contraseña no se envía en el JSON de respuesta
+            'password': {'write_only': True} 
         }
         
     def validate_password(self, value):

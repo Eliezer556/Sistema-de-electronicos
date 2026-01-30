@@ -41,6 +41,13 @@ export const Navbar = () => {
                                     </Link>
                                 )}
 
+                                {role === 'cliente' && (
+                                    <Link title="Perfil de usuario" to="/perfil-user" 
+                                        className="p-2.5 text-gray-400 hover:text-purple-400 hover:bg-purple-500/10 rounded-xl transition-all border border-transparent hover:border-purple-500/20">
+                                        <User size={22} />
+                                    </Link>
+                                )}
+
                                 {role === 'proveedor' && (
                                     <Link title="Panel de Tienda" to="/inventory" 
                                         className="p-2.5 text-gray-400 hover:text-blue-400 hover:bg-blue-500/10 rounded-xl transition-all border border-transparent hover:border-blue-500/20">

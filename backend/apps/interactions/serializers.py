@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from .models import Review, Wishlist, WishlistItem, StockNotification
 from apps.inventory.serializers import ComponentSerializer
+from rest_framework.exceptions import ValidationError, PermissionDenied
 
 class ReviewSerializer(serializers.ModelSerializer):
     user_email = serializers.ReadOnlyField(source='user.email')
@@ -9,6 +10,21 @@ class ReviewSerializer(serializers.ModelSerializer):
         model = Review
         fields = ['id', 'user', 'user_email', 'store', 'rating', 'comment', 'created_at']
 
+    def perform_create(self, serializer):
+        user = self.request.user
+        store = serializer.validated_data.get('store')
+
+        if user.role != 'cliente':
+            raise PermissionDenied("Solo los clientes pueden calificar tiendas.")
+
+        if hasattr(store, 'owner') and store.owner == user:
+            raise ValidationError("No puedes calificar tu propia tienda.")
+
+        if Review.objects.filter(user=user, store=store).exists():
+            raise ValidationError("Ya has calificado esta tienda anteriormente.")
+
+        serializer.save(user=user)
+        
 class WishlistItemSerializer(serializers.ModelSerializer):
     component = ComponentSerializer(read_only=True)
     subtotal = serializers.SerializerMethodField()

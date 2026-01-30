@@ -1,5 +1,5 @@
 import { Outlet, Link } from 'react-router-dom';
-import { Navbar } from '../components/NavBar';
+import { Navbar } from '../components/Navbar';
 import { ShieldCheck, Zap } from 'lucide-react';
 
 export const MainLayout = () => {

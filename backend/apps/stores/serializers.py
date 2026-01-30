@@ -3,10 +3,8 @@ from .models import Store
 from django.db.models import Avg
 
 class StoreSerializer(serializers.ModelSerializer):
-    # Mostramos el email del dueño en lugar de solo su ID
-    owner_email = serializers.ReadOnlyField(source='owner.email')
-    
-    # Campos dinamicos de estadistica
+
+    owner_email = serializers.ReadOnlyField(source='owner.email')    
     rating_average = serializers.SerializerMethodField()
     total_reviews = serializers.SerializerMethodField()
 
@@ -27,3 +25,8 @@ class StoreSerializer(serializers.ModelSerializer):
     def get_total_reviews(self, obj):
         # Cuenta cuántas personas han opinado
         return obj.reviews.count()
+    
+    def get_rating(self, obj):
+        # Calculamos el promedio de reviews para esta tienda
+        average = obj.reviews.aggregate(Avg('rating'))['rating__avg']
+        return round(average, 1) if average else 0.0

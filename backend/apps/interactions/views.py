@@ -115,13 +115,19 @@ class WishlistViewSet(viewsets.ModelViewSet):
 
     @action(detail=False, methods=['post'], url_path='save-search')
     def save_search(self, request):
-        query = request.data.get('query', '').strip()
-        if query:
-            SearchHistory.objects.create(
-                user=request.user if request.user.is_authenticated else None,
-                query=query
-            )
-        return Response(status=status.HTTP_201_CREATED)
+        query = request.data.get('query', '').strip().lower()
+        
+        if not query or len(query) < 3:
+            return Response({'status': 'query too short'}, status=status.HTTP_400_BAD_REQUEST)
+
+        user = request.user if request.user.is_authenticated else None
+        
+        last_search = SearchHistory.objects.filter(user=user).first()
+        if last_search and last_search.query.lower() == query:
+            return Response({'status': 'already recorded'}, status=status.HTTP_200_OK)
+
+        SearchHistory.objects.create(user=user, query=query)
+        return Response({'status': 'saved'}, status=status.HTTP_201_CREATED)
     
 class AnalyticsViewSet(viewsets.ViewSet):
     permission_classes = [IsAdminUser]

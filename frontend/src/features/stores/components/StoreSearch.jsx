@@ -12,7 +12,7 @@ export function StoreSearch({ searchTerm, setSearchTerm }) {
                 type="text"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                placeholder="Buscar tienda o dirección..."
+                placeholder="Buscar tienda"
                 className="w-full bg-black/40 border border-gray-800 text-white text-xs pl-11 pr-10 py-3.5 rounded-xl focus:outline-none focus:border-purple-500/50 transition-all placeholder:text-gray-600 placeholder:uppercase placeholder:text-[9px] placeholder:tracking-widest"
             />
 
