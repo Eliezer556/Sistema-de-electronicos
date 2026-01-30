@@ -19,12 +19,9 @@ export const SearchBar = () => {
 
     const handleSaveSearch = async (queryToSave) => {
         const query = queryToSave || searchTerm;
-        if (!query || !query.trim()) return;
+        if (!query || !query.trim() || query.trim().length < 3) return;
 
-        const result = await searchService.saveSearch(query.trim());
-        if (result.success) {
-            setShowDropdown(false);
-        }
+        await searchService.saveSearch(query.trim());
     };
 
     const handleSelectSuggestion = (value) => {
@@ -52,7 +49,7 @@ export const SearchBar = () => {
                 <input
                     type="text"
                     className="block w-full pl-11 pr-11 py-3 border border-gray-800 rounded-2xl bg-[#1a1a1a]/50 backdrop-blur-md focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500/50 focus:bg-[#1a1a1a] text-sm transition-all text-white placeholder-gray-600 outline-none"
-                    placeholder="Buscar en el inventario..."
+                    placeholder="Buscar componentes..."
                     value={searchTerm}
                     onFocus={fetchSuggestions}
                     onKeyDown={(e) => {

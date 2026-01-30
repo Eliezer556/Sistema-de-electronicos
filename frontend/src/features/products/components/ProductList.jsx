@@ -7,6 +7,7 @@ import { SearchBar } from './SearchBar';
 import { CategoryFilter } from './CategoryFilter';
 import { Link } from 'react-router-dom';
 import { Loading } from '../../../components/Loading';
+import { TechnicalFilters } from './TechnicalFilters';
 
 export const ProductList = () => {
     const {
@@ -48,9 +49,9 @@ export const ProductList = () => {
     // Lógica de renderizado condicional para el detalle
     if (selectedProduct) {
         return (
-            <ProductDetail 
-                product={selectedProduct} 
-                onBack={() => setSelectedProduct(null)} 
+            <ProductDetail
+                product={selectedProduct}
+                onBack={() => setSelectedProduct(null)}
             />
         );
     }
@@ -93,6 +94,9 @@ export const ProductList = () => {
                     </div>
                     <CategoryFilter />
                 </div>
+
+                <TechnicalFilters />
+
             </header>
 
             {products.length === 0 ? (
@@ -115,10 +119,10 @@ export const ProductList = () => {
             ) : (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
                     {products.map((product) => (
-                        <ProductCard 
-                            key={product.id} 
-                            product={product} 
-                            onViewDetail={(p) => setSelectedProduct(p)} 
+                        <ProductCard
+                            key={product.id}
+                            product={product}
+                            onViewDetail={(p) => setSelectedProduct(p)}
                         />
                     ))}
                 </div>

@@ -56,12 +56,29 @@ export const AuthProvider = ({ children }) => {
         setUser(null);
     };
 
+    const deleteAccount = async () => {
+        const result = await authService.deleteAccount();
+
+        if (result.success) {
+            logout(); 
+        }
+        
+        return result; 
+    };
+
+    const changePassword = async (oldPassword, newPassword) => {
+        const result = await authService.changePassword(oldPassword, newPassword);
+        return result;
+    };
+
     const value = {
         user,
         login,
         register,
         logout,
         loading,
+        deleteAccount,
+        changePassword,
         isAuthenticated: !!user,
         role: user?.role || null
     };

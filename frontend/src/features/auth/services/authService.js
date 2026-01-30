@@ -48,6 +48,53 @@ export const authService = {
         localStorage.removeItem('user_role');
         localStorage.removeItem('user_data');
         return { success: true };
+    },
+
+
+    requestPasswordReset: async (email) => {
+        try {
+            const response = await api.post('/users/password-reset/', { email });
+            return { success: true, data: response.data };
+        } catch (error) {
+            return handleApiError(error, 'Error al solicitar recuperación');
+        }
+    },
+
+    deleteAccount: async () => {
+        try {
+            const response = await api.delete('/users/delete-account/');
+            return { 
+                success: true, 
+                status: response.status 
+            };
+        } catch (error) {
+            return handleApiError(error, 'Error al intentar eliminar la cuenta');
+        }
+    },
+
+    confirmPasswordReset: async (uidb64, token, newPassword) => {
+        try {
+            const response = await api.post('/users/password-reset-confirm/', {
+                uidb64,
+                token,
+                new_password: newPassword
+            });
+            return { success: true, data: response.data };
+        } catch (error) {
+            return handleApiError(error, 'Error al restablecer la contraseña');
+        }
+    },
+
+    changePassword: async (oldPassword, newPassword) => {
+        try {
+            const response = await api.post('/users/change-password/', {
+                old_password: oldPassword,
+                new_password: newPassword
+            });
+            return { success: true, data: response.data };
+        } catch (error) {
+            return handleApiError(error, 'Error al cambiar la contraseña');
+        }
     }
 };
 

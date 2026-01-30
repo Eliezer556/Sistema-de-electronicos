@@ -8,6 +8,9 @@ import { AdminDashboard } from '../pages/AdminDashboard';
 import { RegisterForm } from '../features/auth/components/RegisterForm';
 import { InventoryDashboard } from '../features/provider/components/InventoryDashboard';
 import { StoreList } from '../features/stores/components/storeList';
+import { PerfilUser } from '../pages/PerfilUser';
+import { ForgotPassword } from '../features/auth/components/ForgotPassword';
+import { ResetPasswordConfirm } from '../features/auth/components/ResetPasswordConfirm';
 
 export const AppRouter = () => {
     return (
@@ -16,6 +19,8 @@ export const AppRouter = () => {
                 <Route path="/login" element={<LoginForm />} />
 
                 <Route path="/register" element={<RegisterForm />} />
+                <Route path="/forgot-passwword" element={<ForgotPassword />} />
+                <Route path="/reset-password/:uidb64/:token" element={<ResetPasswordConfirm />} />
 
                 <Route element={<MainLayout />}>
                     <Route path="/" element={<ProductList />} />
@@ -24,6 +29,7 @@ export const AppRouter = () => {
 
                     <Route element={<ProtectedRoute allowedRoles={['cliente']} />}>
                         <Route path="/wishlist" element={<WishlistPage />} />
+                        <Route path="/perfil-user" element={<PerfilUser />} />
                     </Route>
 
                     <Route element={<ProtectedRoute allowedRoles={['proveedor']} />}>

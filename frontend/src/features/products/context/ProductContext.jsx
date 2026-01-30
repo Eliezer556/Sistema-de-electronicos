@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useCallback, useMemo } from 'react';
+import { createContext, useContext, useState, useCallback, useMemo, useEffect } from 'react';
 import { productService } from '../services/productService';
 import { categoryService } from '../services/categoryService';
 
@@ -9,13 +9,21 @@ export const ProductProvider = ({ children }) => {
     const [categories, setCategories] = useState([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
+    
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedCategory, setSelectedCategory] = useState('all');
+    
+    const [filters, setFilters] = useState({
+        min_price: '',
+        max_price: '',
+        montaje: '',
+        encapsulado: '',
+        mpn: ''
+    });
 
     const fetchData = useCallback(async () => {
         setLoading(true);
         setError(null);
-        
         try {
             const [productRes, categoryRes] = await Promise.all([
                 productService.getAllProducts(),
@@ -25,11 +33,9 @@ export const ProductProvider = ({ children }) => {
             if (productRes.success && categoryRes.success) {
                 setProducts(productRes.data);
                 setCategories(categoryRes.data);
-            } else {
-                setError(productRes.message || categoryRes.message);
             }
         } catch (err) {
-            setError("Error de conexión con el servidor");
+            setError("Error de conexión");
         } finally {
             setLoading(false);
         }
@@ -39,15 +45,32 @@ export const ProductProvider = ({ children }) => {
         return products.filter(product => {
             const matchesSearch = 
                 product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                product.description?.toLowerCase().includes(searchTerm.toLowerCase());
+                product.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                product.mpn?.toLowerCase().includes(searchTerm.toLowerCase());
             
             const matchesCategory = 
                 selectedCategory === 'all' || 
                 product.category_name === selectedCategory;
+
+
+            const matchesMinPrice = !filters.min_price || product.price >= parseFloat(filters.min_price);
+            const matchesMaxPrice = !filters.max_price || product.price <= parseFloat(filters.max_price);
+
+            const specs = product.technical_specs || {};
+            const matchesMontaje = !filters.montaje || 
+                specs.montaje?.toLowerCase() === filters.montaje.toLowerCase();
             
-            return matchesSearch && matchesCategory;
+            const matchesMPNFilter = !filters.mpn || 
+                product.mpn?.toLowerCase().includes(filters.mpn.toLowerCase());
+
+            return matchesSearch && 
+                   matchesCategory && 
+                   matchesMinPrice && 
+                   matchesMaxPrice && 
+                   matchesMontaje && 
+                   matchesMPNFilter;
         });
-    }, [products, searchTerm, selectedCategory]);
+    }, [products, searchTerm, selectedCategory, filters]); 
 
     const value = {
         products: filteredProducts,
@@ -59,6 +82,8 @@ export const ProductProvider = ({ children }) => {
         setSearchTerm,
         selectedCategory,
         setSelectedCategory,
+        filters,    
+        setFilters, 
         fetchData
     };
 
@@ -71,8 +96,6 @@ export const ProductProvider = ({ children }) => {
 
 export const useProducts = () => {
     const context = useContext(ProductContext);
-    if (!context) {
-        throw new Error('useProducts debe ser usado dentro de un ProductProvider');
-    }
+    if (!context) throw new Error('useProducts debe ser usado dentro de un ProductProvider');
     return context;
 };
