@@ -7,7 +7,7 @@ import WishlistPage from '../features/wishlist/components/WishlistPage';
 import { AdminDashboard } from '../pages/AdminDashboard';
 import { RegisterForm } from '../features/auth/components/RegisterForm';
 import { InventoryDashboard } from '../features/provider/components/InventoryDashboard';
-import { StoreList } from '../features/stores/components/storeList';
+import { StoreList } from '../features/stores/components/StoreList';
 import { PerfilUser } from '../pages/PerfilUser';
 import { ForgotPassword } from '../features/auth/components/ForgotPassword';
 import { ResetPasswordConfirm } from '../features/auth/components/ResetPasswordConfirm';

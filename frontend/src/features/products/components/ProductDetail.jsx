@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
-import { 
-    ShoppingCart, CheckCircle2, AlertCircle, Cpu, 
-    ArrowLeft, FileText, Package, Database, HardDrive, ExternalLink 
+import React, { useState, useEffect } from 'react';
+import {
+    ShoppingCart, CheckCircle2, AlertCircle, Cpu,
+    ArrowLeft, FileText, Package, Database, HardDrive, ExternalLink
 } from 'lucide-react';
 import { useWishlist } from '../../wishlist/context/WishlistContext';
 
@@ -28,23 +28,23 @@ export const ProductDetail = ({ product, onBack }) => {
         <div className="min-h-screen bg-[#080808] text-gray-200 p-4 md:p-12 animate-in fade-in duration-500">
             {/* Header de navegación refinado */}
             <div className="max-w-6xl mx-auto mb-10">
-                <button 
+                <button
                     onClick={onBack}
                     className="group flex items-center gap-2 text-gray-500 hover:text-white transition-all text-[11px] font-bold uppercase tracking-widest"
                 >
-                    <ArrowLeft size={14} className="group-hover:-translate-x-1 transition-transform" /> 
+                    <ArrowLeft size={14} className="group-hover:-translate-x-1 transition-transform" />
                     Regresar al inventario
                 </button>
             </div>
 
             <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-16">
-                
+
                 {/* Columna Imagen (4/12) */}
                 <div className="lg:col-span-5 space-y-6">
                     <div className="aspect-square bg-[#111] rounded-2xl border border-gray-800 flex items-center justify-center p-8 relative group overflow-hidden">
-                        <img 
-                            src={imageUrl} 
-                            alt={product.name} 
+                        <img
+                            src={imageUrl}
+                            alt={product.name}
                             className="w-full h-full object-contain opacity-90 group-hover:opacity-100 transition-opacity"
                         />
                         <div className="absolute top-4 left-4">
@@ -53,17 +53,17 @@ export const ProductDetail = ({ product, onBack }) => {
                             </span>
                         </div>
                     </div>
-                    
+
                     {/* Acciones Secundarias: Datasheet */}
                     {product.datasheet_url && (
-                        <a 
+                        <a
                             href={product.datasheet_url}
                             target="_blank"
                             rel="noopener noreferrer"
                             className="flex items-center justify-center gap-3 w-full py-4 bg-[#1a1a1a] hover:bg-[#222] border border-gray-800 rounded-xl text-[11px] font-bold uppercase tracking-tighter transition-all text-gray-300"
                         >
                             <FileText size={16} className="text-blue-500" />
-                            Ver Datasheet Técnico
+                            Redirigir a la tienda de origen
                             <ExternalLink size={12} className="opacity-50" />
                         </a>
                     )}
@@ -76,7 +76,7 @@ export const ProductDetail = ({ product, onBack }) => {
                             <Cpu size={14} />
                             <span className="text-[10px] font-black uppercase tracking-[0.3em]">{product.category_name}</span>
                         </div>
-                        
+
                         <h1 className="text-3xl font-medium text-white mb-2 tracking-tight">{product.name}</h1>
                         <p className="text-gray-500 text-sm font-mono tracking-tight uppercase">MPN: {product.mpn || 'N/A'}</p>
                     </div>
@@ -131,14 +131,13 @@ export const ProductDetail = ({ product, onBack }) => {
                         </div>
 
                         <div className="flex gap-3">
-                            <button 
+                            <button
                                 onClick={handleWishlistClick}
                                 disabled={product.stock <= 0}
-                                className={`flex-[3] py-5 rounded-xl font-bold text-[11px] uppercase tracking-[0.2em] transition-all flex items-center justify-center gap-3 active:scale-[0.98] ${
-                                    isFavorite 
-                                    ? 'bg-blue-600 text-white shadow-lg shadow-blue-900/20' 
-                                    : 'bg-white text-black hover:bg-blue-500 hover:text-white'
-                                } disabled:opacity-30 disabled:grayscale`}
+                                className={`flex-[3] py-5 rounded-xl font-bold text-[11px] uppercase tracking-[0.2em] transition-all flex items-center justify-center gap-3 active:scale-[0.98] ${isFavorite
+                                        ? 'bg-blue-600 text-white shadow-lg shadow-blue-900/20'
+                                        : 'bg-white text-black hover:bg-blue-500 hover:text-white'
+                                    } disabled:opacity-30 disabled:grayscale`}
                             >
                                 {isFavorite ? <CheckCircle2 size={16} /> : <ShoppingCart size={16} />}
                                 {isFavorite ? 'En el Proyecto' : 'Añadir al Proyecto'}
@@ -150,9 +149,8 @@ export const ProductDetail = ({ product, onBack }) => {
 
             {/* Feedback Toast Refinado */}
             {status.type && (
-                <div className={`fixed bottom-8 left-1/2 -translate-x-1/2 px-6 py-3 rounded-xl flex items-center gap-3 text-[11px] font-bold uppercase tracking-widest shadow-2xl animate-in slide-in-from-bottom-5 ${
-                    status.type === 'success' ? 'bg-blue-600 text-white' : 'bg-red-600 text-white'
-                }`}>
+                <div className={`fixed bottom-8 left-1/2 -translate-x-1/2 px-6 py-3 rounded-xl flex items-center gap-3 text-[11px] font-bold uppercase tracking-widest shadow-2xl animate-in slide-in-from-bottom-5 ${status.type === 'success' ? 'bg-blue-600 text-white' : 'bg-red-600 text-white'
+                    }`}>
                     {status.type === 'success' ? <CheckCircle2 size={16} /> : <AlertCircle size={16} />}
                     {status.message}
                 </div>

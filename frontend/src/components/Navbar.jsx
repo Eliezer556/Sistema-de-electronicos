@@ -1,9 +1,10 @@
 import { Link } from 'react-router-dom';
-import { ShoppingCart, Package, LogOut, LayoutDashboard, LogIn, Cpu, User } from 'lucide-react';
+import { ShoppingCart, Package, LogOut, LayoutDashboard, LogIn, Cpu, User, Bell } from 'lucide-react';
 import { useAuth } from '../features/auth/context/AuthContext';
 
 export const Navbar = () => {
-    const { user, logout, isAuthenticated } = useAuth();
+    // Extraemos hasStockAlert directamente del context global
+    const { user, logout, isAuthenticated, hasStockAlert } = useAuth();
     const role = user?.role;
 
     return (
@@ -35,28 +36,48 @@ export const Navbar = () => {
                             {/* Enlaces de Acción por Rol */}
                             <div className="flex items-center gap-4">
                                 {role === 'cliente' && (
-                                    <Link title="Carrito de Compras" to="/wishlist" 
+                                    <Link title="Carrito de Compras" to="/wishlist"
                                         className="p-2.5 text-gray-400 hover:text-purple-400 hover:bg-purple-500/10 rounded-xl transition-all border border-transparent hover:border-purple-500/20">
                                         <ShoppingCart size={22} />
                                     </Link>
                                 )}
 
                                 {role === 'cliente' && (
-                                    <Link title="Perfil de usuario" to="/perfil-user" 
-                                        className="p-2.5 text-gray-400 hover:text-purple-400 hover:bg-purple-500/10 rounded-xl transition-all border border-transparent hover:border-purple-500/20">
-                                        <User size={22} />
+                                    <Link
+                                        title={hasStockAlert ? "Alertas de Stock Pendientes" : "Perfil de usuario"}
+                                        to="/perfil-user"
+                                        className={`relative p-2.5 rounded-xl transition-all border group ${hasStockAlert
+                                            ? "text-amber-400 bg-amber-400/5 border-amber-500/30 shadow-[0_0_15px_rgba(251,191,36,0.1)]"
+                                            : "text-gray-400 hover:text-purple-400 hover:bg-purple-500/10 border-transparent hover:border-purple-500/20"
+                                            }`}
+                                    >
+                                        <div className="relative">
+                                            <User size={22} className={hasStockAlert ? "animate-pulse" : ""} />
+
+                                            {/* Indicador de Alerta (Badge) */}
+                                            {hasStockAlert && (
+                                                <>
+                                                    <span className="absolute -top-1 -right-1 flex h-3 w-3">
+                                                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                                                        <span className="relative inline-flex rounded-full h-3 w-3 bg-red-500 border-2 border-[#0a0a0a]"></span>
+                                                    </span>
+                                                    {/* Icono de campana pequeño para reforzar el mensaje */}
+                                                    <Bell size={10} className="absolute -bottom-1 -right-1 text-amber-500 fill-amber-500" />
+                                                </>
+                                            )}
+                                        </div>
                                     </Link>
                                 )}
 
                                 {role === 'proveedor' && (
-                                    <Link title="Panel de Tienda" to="/inventory" 
+                                    <Link title="Panel de Tienda" to="/inventory"
                                         className="p-2.5 text-gray-400 hover:text-blue-400 hover:bg-blue-500/10 rounded-xl transition-all border border-transparent hover:border-blue-500/20">
                                         <Package size={22} />
                                     </Link>
                                 )}
 
                                 {role === 'admin' && (
-                                    <Link title="Terminal de Control" to="/admin/dashboard" 
+                                    <Link title="Terminal de Control" to="/admin/dashboard"
                                         className="p-2.5 text-gray-400 hover:text-red-400 hover:bg-red-500/10 rounded-xl transition-all border border-transparent hover:border-red-500/20">
                                         <LayoutDashboard size={22} />
                                     </Link>

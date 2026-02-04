@@ -1,7 +1,15 @@
 from django.contrib import admin
 from .models import Store
+from apps.interactions.models import Review
+
+class ReviewInline(admin.TabularInline):
+    model = Review
+    extra = 0
+    readonly_fields = ('created_at',)
+    fields = ('user', 'rating', 'comment', 'created_at')
 
 @admin.register(Store)
 class StoreAdmin(admin.ModelAdmin):
-    list_display = ('name', 'owner', 'address', 'created_at')
+    list_display = ('name', 'owner', 'address', 'rating', 'review_count', 'created_at')
     search_fields = ('name', 'address')
+    inlines = [ReviewInline]
