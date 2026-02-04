@@ -6,6 +6,7 @@ from .models import Category, Component
 from .serializers import CategorySerializer, ComponentSerializer
 from django.http import HttpResponse
 from openpyxl import Workbook
+from apps.interactions.models import StockNotification
 
 class ComponentFilter(django_filters.FilterSet):
     min_price = django_filters.NumberFilter(field_name="price", lookup_expr='gte')
@@ -66,6 +67,43 @@ class ComponentViewSet(viewsets.ModelViewSet):
             
         serializer = self.get_serializer(recommended, many=True)
         return Response(serializer.data)
+    
+    @action(detail=True, methods=['post'], permission_classes=[permissions.IsAuthenticated])
+    def toggle_notification(self, request, pk=None):
+        """Activa o desactiva el seguimiento de stock para un componente"""
+        component = self.get_object()
+        notification, created = StockNotification.objects.get_or_create(
+            user=request.user, 
+            component=component
+        )
+        
+        if not created:
+            # Si ya existía, lo borramos (toggle off)
+            notification.delete()
+            return Response({'is_notifying': False, 'message': 'Seguimiento desactivado'})
+        
+        # Si se creó nuevo (toggle on)
+        return Response({'is_notifying': True, 'message': 'Te avisaremos cuando haya poco stock'})
+
+    @action(detail=False, methods=['get'], permission_classes=[permissions.IsAuthenticated])
+    def low_stock_alerts(self, request):
+        """Devuelve solo los componentes seguidos por el usuario que tienen stock bajo"""
+        # Filtramos componentes que tengan una StockNotification activa para este usuario
+        # y que además cumplan la condición de stock (ej. < 10)
+        queryset = Component.objects.filter(
+            stocknotification__user=request.user,
+            stocknotification__is_active=True,
+            stock__lt=10
+        ).distinct().order_by('stock')
+        
+        low_stock = queryset.filter(stock__gt=0)
+        out_of_stock = queryset.filter(stock__lte=0)
+        
+        return Response({
+            "low_stock": ComponentSerializer(low_stock, many=True, context={'request': request}).data,
+            "out_of_stock": ComponentSerializer(out_of_stock, many=True, context={'request': request}).data,
+            "total_alerts": queryset.count()
+        })
 
     @action(detail=False, methods=['get'], permission_classes=[permissions.IsAuthenticated])
     def download_excel(self, request): 

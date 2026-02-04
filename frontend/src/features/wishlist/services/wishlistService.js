@@ -13,6 +13,33 @@ export const wishlistService = {
         }
     },
 
+    updateQuantity: async (wishlistId, productId, quantity) => {
+        try {
+            const response = await api.post(`/wishlist/${wishlistId}/update_quantity/`, {
+                product_id: productId,
+                quantity: quantity
+            });
+            return { success: true, data: response.data };
+        } catch (error) {
+            return {
+                success: false,
+                message: error.response?.data?.detail || 'Error al actualizar cantidad'
+            };
+        }
+    },
+
+    clearWishlist: async (wishlistId) => {
+        try {
+            const response = await api.post(`/wishlist/${wishlistId}/clear_all/`);
+            return { success: true, data: response.data };
+        } catch (error) {
+            return {
+                success: false,
+                message: error.response?.data?.detail || 'Error al vaciar la lista'
+            };
+        }
+    },
+
     createWishlist: async (name) => {
         try {
             const response = await api.post('/wishlist/', { name });
@@ -66,7 +93,7 @@ export const wishlistService = {
     toggleItem: async (wishlistId, productId) => {
         try {
             const response = await api.post(`/wishlist/${wishlistId}/toggle_item/`, {
-                product_id: productId 
+                product_id: productId
             });
             return { success: true, data: response.data };
         } catch (error) {

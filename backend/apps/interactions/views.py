@@ -16,8 +16,24 @@ class ReviewViewSet(viewsets.ModelViewSet):
             return [permissions.AllowAny()]
         return [permissions.IsAuthenticated()]
 
+    def get_queryset(self):
+        queryset = Review.objects.all()
+        store_id = self.request.query_params.get('store')
+        if store_id:
+            queryset = queryset.filter(store_id=store_id)
+        return queryset
+
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
+
+    def destroy(self, request, *args, **kwargs):
+        instance = self.get_object()
+        if instance.user != request.user:
+            return Response(
+                {"error": "No tienes permiso para eliminar esta reseña."}, 
+                status=status.HTTP_403_FOR_PERMISSION_DENIED
+            )
+        return super().destroy(request, *args, **kwargs)
 
 class WishlistViewSet(viewsets.ModelViewSet):
     serializer_class = WishlistSerializer
@@ -40,6 +56,14 @@ class WishlistViewSet(viewsets.ModelViewSet):
         else:
             WishlistItem.objects.create(wishlist=wishlist, component_id=product_id, quantity=1)
             
+        serializer = self.get_serializer(wishlist)
+        return Response(serializer.data)
+    
+    @action(detail=True, methods=['post'])
+    def clear_all(self, request, pk=None):
+        wishlist = self.get_object()
+        WishlistItem.objects.filter(wishlist=wishlist).delete()
+        
         serializer = self.get_serializer(wishlist)
         return Response(serializer.data)
 

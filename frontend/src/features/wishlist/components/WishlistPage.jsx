@@ -1,10 +1,11 @@
+import React from 'react';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
-import { Cpu, Store, Calculator, Download, Box, LayoutGrid, Minus, Plus, Trash2 } from 'lucide-react';
+import { Cpu, Store, Calculator, Download, Box, LayoutGrid, Minus, Plus, Trash2, XCircle } from 'lucide-react';
 import { useWishlist } from '../context/WishlistContext';
 
 const WishlistPage = () => {
-    const { wishlists, loading, updateItemQuantity, toggleComponentInList } = useWishlist();
+    const { wishlists, loading, updateItemQuantity, toggleComponentInList, clearWishlist } = useWishlist();
 
     const exportToPDF = (list) => {
         const doc = new jsPDF();
@@ -51,33 +52,41 @@ const WishlistPage = () => {
 
     if (loading) {
         return (
-            <div className="flex flex-col justify-center items-center min-h-[70vh]">
-                <div className="relative h-20 w-20">
-                    <div className="absolute inset-0 rounded-full border-2 border-purple-500/20 border-t-purple-500 animate-spin"></div>
-                    <Cpu className="absolute inset-0 m-auto text-purple-500 animate-pulse" size={32} />
+            <div className="flex flex-col justify-center items-center min-h-[70vh] bg-[#0a0a0a]">
+                <div className="relative h-12 w-12">
+                    <div className="absolute inset-0 rounded-full border-2 border-purple-500/10 border-t-purple-500 animate-spin"></div>
+                    <Cpu className="absolute inset-0 m-auto text-purple-500/50" size={20} />
                 </div>
             </div>
         );
     }
 
     return (
-        <div className="max-w-[1400px] mx-auto px-6 py-12">
-            <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-16">
+        <div className="max-w-[1200px] mx-auto px-6 py-8 min-h-screen">
+            <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-10 border-b border-gray-900 pb-8">
                 <div>
-                    <div className="flex items-center gap-3 mb-2">
-                        <Box className="text-purple-500" size={20} />
-                        <span className="text-purple-500 font-black text-[10px] uppercase tracking-[0.4em]">Laboratorio v2.0</span>
+                    <div className="flex items-center gap-2 mb-1">
+                        <Box className="text-purple-500" size={14} />
+                        <span className="text-purple-500 font-black text-[9px] uppercase tracking-[0.3em]">System.Inventory.v2</span>
                     </div>
-                    <h1 className="text-4xl font-black text-white tracking-tighter">
-                        PROYECTOS & <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-500">ENGINEERING LISTS</span>
+                    <h1 className="text-3xl font-black text-white tracking-tighter uppercase italic">
+                        Mis <span className="text-gray-600">Proyectos</span>
                     </h1>
                 </div>
+                {wishlists.length > 0 && (
+                    <button 
+                        onClick={() => clearWishlist()}
+                        className="flex items-center gap-2 px-4 py-2 border border-red-500/20 bg-red-500/5 text-red-500 rounded-lg hover:bg-red-500 hover:text-white transition-all text-[9px] font-black uppercase tracking-widest"
+                    >
+                        <XCircle size={14} /> Vaciar Todo
+                    </button>
+                )}
             </header>
 
             {wishlists.length === 0 ? (
-                <div className="flex flex-col items-center justify-center py-32 bg-[#0a0a0a] rounded-[3rem] border border-gray-900 border-dashed">
-                    <LayoutGrid size={48} className="text-gray-800 mb-6" />
-                    <p className="text-gray-500 font-bold uppercase tracking-widest text-xs">No se han inicializado proyectos</p>
+                <div className="flex flex-col items-center justify-center py-20 bg-[#111]/50 rounded-lg border border-gray-800 border-dashed">
+                    <LayoutGrid size={32} className="text-gray-800 mb-4" />
+                    <p className="text-gray-600 font-black uppercase tracking-widest text-[9px]">Stack de proyectos vacío</p>
                 </div>
             ) : (
                 wishlists.map((list) => {
@@ -85,107 +94,101 @@ const WishlistPage = () => {
                     const grouped = groupItemsByStore(itemsToShow);
 
                     return (
-                        <section key={list.id} className="mb-20 animate-in fade-in slide-in-from-bottom-4 duration-700">
-                            <div className="bg-[#111] rounded-[2.5rem] border border-gray-800/50 p-8 md:p-10 shadow-2xl overflow-hidden relative">
-                                <div className="absolute top-0 right-0 w-64 h-64 bg-purple-500/5 blur-[100px] -z-10"></div>
-                                
-                                <div className="flex flex-col lg:flex-row justify-between gap-8 mb-12 border-b border-gray-800 pb-10">
-                                    <div className="space-y-4">
-                                        <h2 className="text-3xl font-black text-white tracking-tight">{list.name}</h2>
-                                        <div className="flex flex-wrap gap-4">
+                        <section key={list.id} className="mb-12 animate-in fade-in duration-500">
+                            <div className="bg-[#111] rounded-lg border border-gray-800 p-6 shadow-xl">
+                                <div className="flex flex-col lg:flex-row justify-between gap-6 mb-8 border-b border-gray-800/50 pb-6">
+                                    <div className="space-y-3">
+                                        <h2 className="text-xl font-black text-white tracking-tight uppercase italic">{list.name}</h2>
+                                        <div className="flex flex-wrap gap-2">
                                             <button
                                                 onClick={() => exportToPDF(list)}
-                                                className="group flex items-center gap-3 bg-white text-black px-6 py-3 rounded-xl hover:bg-purple-500 hover:text-white transition-all text-[10px] font-black uppercase tracking-widest"
+                                                className="flex items-center gap-2 bg-white text-black px-4 py-2 rounded-lg hover:bg-purple-500 hover:text-white transition-all text-[9px] font-black uppercase tracking-widest"
                                             >
-                                                <Download size={14} /> 
-                                                Exportar Blueprint
+                                                <Download size={12} /> Export PDF
                                             </button>
-                                            <div className="px-4 py-3 bg-[#1a1a1a] rounded-xl border border-gray-800">
-                                                <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest">
-                                                    {itemsToShow.length} Componentes Únicos
+                                            <div className="px-3 py-2 bg-black border border-gray-800 rounded-lg">
+                                                <span className="text-[9px] font-black text-gray-500 uppercase">
+                                                    {itemsToShow.length} Items Registrados
                                                 </span>
                                             </div>
                                         </div>
                                     </div>
 
-                                    <div className="flex items-center gap-6 bg-gradient-to-br from-[#1a1a1a] to-[#0a0a0a] p-6 rounded-3xl border border-gray-800 min-w-[280px]">
-                                        <div className="p-4 bg-blue-500/10 rounded-2xl text-blue-400">
-                                            <Calculator size={28} />
+                                    <div className="flex items-center gap-4 bg-black p-4 rounded-lg border border-gray-800 min-w-[240px]">
+                                        <div className="p-2 bg-purple-500/10 rounded-lg text-purple-400">
+                                            <Calculator size={20} />
                                         </div>
                                         <div>
-                                            <p className="text-[10px] uppercase font-black text-gray-500 tracking-[0.2em] mb-1">Costo Estimado</p>
-                                            <p className="text-3xl font-black text-white">${list.total_budget?.toFixed(2)}</p>
+                                            <p className="text-[8px] uppercase font-black text-gray-600 tracking-widest">Presupuesto Total</p>
+                                            <p className="text-xl font-bold text-white">${list.total_budget?.toFixed(2)}</p>
                                         </div>
                                     </div>
                                 </div>
 
                                 {itemsToShow.length === 0 ? (
-                                    <div className="text-center py-20 bg-black/20 rounded-[2rem] border border-gray-800/30">
-                                        <p className="text-gray-600 font-bold uppercase tracking-widest text-[10px]">Lista de materiales vacía</p>
+                                    <div className="text-center py-10 bg-black/40 rounded-lg border border-gray-800/50">
+                                        <p className="text-gray-700 font-black uppercase tracking-widest text-[8px]">No components mapped</p>
                                     </div>
                                 ) : (
                                     Object.entries(grouped).map(([storeName, items]) => (
-                                        <div key={storeName} className="mb-8 last:mb-0">
-                                            <div className="flex items-center gap-4 mb-6">
-                                                <Store size={14} className="text-purple-500" />
-                                                <span className="text-[10px] font-black uppercase tracking-[0.3em] text-gray-400">{storeName}</span>
-                                                <div className="h-[1px] flex-grow bg-gray-800/50"></div>
+                                        <div key={storeName} className="mb-6 last:mb-0">
+                                            <div className="flex items-center gap-3 mb-4">
+                                                <Store size={12} className="text-purple-500" />
+                                                <span className="text-[9px] font-black uppercase tracking-[0.2em] text-gray-500">{storeName}</span>
+                                                <div className="h-px flex-grow bg-gray-800/30"></div>
                                             </div>
 
-                                            <div className="space-y-3">
+                                            <div className="grid grid-cols-1 gap-2">
                                                 {items.map((item) => (
-                                                    <div key={item.id} className="flex flex-col md:flex-row items-center gap-6 p-4 bg-[#0a0a0a] border border-gray-800/50 rounded-2xl hover:border-purple-500/30 transition-all">
-                                                        {/* Imagen Mini */}
-                                                        <div className="w-16 h-16 rounded-xl overflow-hidden bg-gray-900 shrink-0">
+                                                    <div key={item.id} className="flex flex-col md:flex-row items-center gap-4 p-3 bg-black/40 border border-gray-800/40 rounded-lg hover:border-gray-700 transition-all">
+                                                        <div className="w-12 h-12 rounded-lg overflow-hidden bg-gray-900 border border-gray-800 shrink-0">
                                                             <img 
                                                                 src={item.component.image || 'https://via.placeholder.com/100'} 
-                                                                className="w-full h-full object-cover" 
+                                                                className="w-full h-full object-cover opacity-80" 
                                                                 alt={item.component.name} 
                                                             />
                                                         </div>
 
-                                                        {/* Info Principal */}
                                                         <div className="flex-grow text-center md:text-left">
-                                                            <h4 className="text-sm font-bold text-white uppercase tracking-tight">{item.component.name}</h4>
-                                                            <p className="text-[10px] text-gray-500 uppercase font-black tracking-widest">{item.component.category_name || 'General'}</p>
+                                                            <h4 className="text-[11px] font-bold text-gray-200 uppercase tracking-tight">{item.component.name}</h4>
+                                                            <p className="text-[8px] text-gray-600 uppercase font-black tracking-widest">{item.component.category_name || 'General'}</p>
+                                                            <p className="text-[9px] text-purple-500/80 font-bold mt-1">Unit: ${item.component.price}</p>
                                                         </div>
 
-                                                        {/* Precio Unitario */}
-                                                        <div className="shrink-0 text-center">
-                                                            <p className="text-[9px] font-black text-gray-600 uppercase mb-1">Precio Unit.</p>
-                                                            <p className="text-sm font-black text-white">${item.component.price}</p>
-                                                        </div>
+                                                        <div className="flex items-center gap-6">
+                                                            <div className="flex flex-col items-end">
+                                                                <p className="text-[8px] font-black text-gray-700 uppercase mb-1">Cantidad</p>
+                                                                <div className="flex items-center gap-1 bg-black border border-gray-800 rounded-md p-0.5">
+                                                                    <button 
+                                                                        onClick={() => updateItemQuantity(list.id, item.component.id, Math.max(1, item.quantity - 1))} 
+                                                                        className="p-1 hover:text-white text-gray-600 transition-colors"
+                                                                    >
+                                                                        <Minus size={12} />
+                                                                    </button>
+                                                                    <span className="text-[10px] font-bold text-white px-2 min-w-[24px] text-center">{item.quantity}</span>
+                                                                    <button 
+                                                                        onClick={() => updateItemQuantity(list.id, item.component.id, item.quantity + 1)} 
+                                                                        className="p-1 hover:text-white text-gray-600 transition-colors"
+                                                                    >
+                                                                        <Plus size={12} />
+                                                                    </button>
+                                                                </div>
+                                                            </div>
 
-                                                        {/* Control de Cantidad Minimalista */}
-                                                        {/* <div className="flex items-center bg-black border border-gray-800 rounded-xl p-1 shrink-0">
+                                                            <div className="text-right min-w-[90px]">
+                                                                <p className="text-[8px] font-black text-gray-700 uppercase">Subtotal</p>
+                                                                <p className="text-[12px] font-black text-purple-400 tracking-tight">
+                                                                    ${(item.quantity * item.component.price).toFixed(2)}
+                                                                </p>
+                                                            </div>
+
                                                             <button 
-                                                                onClick={() => updateItemQuantity(list.id, item.component.id, item.quantity - 1)}
-                                                                className="p-2 hover:text-purple-500 text-gray-500 transition-colors"
+                                                                onClick={() => toggleComponentInList(list.id, item.component.id)}
+                                                                className="p-2 text-gray-700 hover:text-red-500 hover:bg-red-500/10 rounded-md transition-all"
                                                             >
-                                                                <Minus size={14} />
+                                                                <Trash2 size={14} />
                                                             </button>
-                                                            <span className="w-10 text-center text-xs font-black text-white">{item.quantity}</span>
-                                                            <button 
-                                                                onClick={() => updateItemQuantity(list.id, item.component.id, item.quantity + 1)}
-                                                                className="p-2 hover:text-purple-500 text-gray-500 transition-colors"
-                                                            >
-                                                                <Plus size={14} />
-                                                            </button>
-                                                        </div> */}
-
-                                                        {/* Subtotal de Fila */}
-                                                        <div className="shrink-0 text-center min-w-[80px]">
-                                                            <p className="text-[9px] font-black text-purple-500/50 uppercase mb-1">Subtotal</p>
-                                                            <p className="text-sm font-black text-purple-400">${(item.quantity * item.component.price).toFixed(2)}</p>
                                                         </div>
-
-                                                        {/* Eliminar */}
-                                                        <button 
-                                                            onClick={() => toggleComponentInList(list.id, item.component.id)}
-                                                            className="p-3 text-gray-600 hover:text-red-500 hover:bg-red-500/5 rounded-xl transition-all"
-                                                        >
-                                                            <Trash2 size={16} />
-                                                        </button>
                                                     </div>
                                                 ))}
                                             </div>

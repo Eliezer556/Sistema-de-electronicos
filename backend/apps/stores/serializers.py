@@ -1,12 +1,15 @@
 from rest_framework import serializers
 from .models import Store
 from django.db.models import Avg
+from apps.interactions.serializers import ReviewSerializer
 
 class StoreSerializer(serializers.ModelSerializer):
 
     owner_email = serializers.ReadOnlyField(source='owner.email')    
     rating_average = serializers.SerializerMethodField()
     total_reviews = serializers.SerializerMethodField()
+    
+    reviews = ReviewSerializer(many=True, read_only=True)
 
     class Meta:
         model = Store
@@ -14,7 +17,8 @@ class StoreSerializer(serializers.ModelSerializer):
             'id', 'owner', 'owner_email', 'name', 
             'description', 'address', 'latitude', 
             'longitude', 'image', 'created_at', 
-            'rating_average', 'total_reviews'
+            'rating_average', 'total_reviews',
+            'reviews',
         ]
         
     def get_rating_average(self, obj):

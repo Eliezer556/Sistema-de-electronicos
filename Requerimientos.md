@@ -22,16 +22,14 @@ REQUERIMIENTOS DEL SISTEMA
 <!-- - Ubicación geográfica: Filtrado por localización.
 - Calificación de tiendas: Escala de 0.0 a 5.0. -->
 
-• 4.1 Para Proveedores de Tienda
--  de reseñas: Visualización de calificación promedio y distribución por estrellas (1 a 5).
-<!-- - Gestión de inventario: Total de componentes registrados y detección de productos con baja disponibilidad o agotados. -->
-- Reporte de uso: Visualización de la actividad de los clientes, incluyendo el número de veces que los componentes se agregan a listas de deseos.
+<!-- -> Agregar la API interna para ver el mapa de la ubicacion de la tienda -->
 
-• 4.2 Para Clientes
-- Resumen de actividad: Panel con reseñas y calificaciones realizadas.
+-> Tiendas mas buscadas y con mayor ventas
 
-• 5. Sistema de Notificaciones y Comunicación
+-> Poner una alerta de Stock en el perfil del usuario
 
-• 5.2 Reseñas y Calificaciones
-- Funcionalidad para que los clientes califiquen tiendas y publiquen reseñas.
-- Capacidad para eliminar reseñas y calificaciones propias
+YAGMAIL BIBLIOTECA PARA CORREOS
+-> Probar le envio de correos para la recuperacion del gmail.
+
+ESTADISTICAS
+-> gestion de inventarios - totales de componentes

@@ -4,9 +4,9 @@ export const productService = {
     getAllProducts: async () => {
         try {
             const response = await api.get('/components/');
-            return { 
-                success: true, 
-                data: response.data 
+            return {
+                success: true,
+                data: response.data
             };
         } catch (error) {
             return {
@@ -16,17 +16,39 @@ export const productService = {
         }
     },
 
+    toggleStockNotification: async (productId) => {
+        try {
+            const response = await api.post(`/components/${productId}/toggle_notification/`);
+            return { success: true, data: response.data };
+        } catch (error) {
+            return { success: false, message: 'Error al actualizar la notificación' };
+        }
+    },
+
+    getLowStockAlerts: async () => {
+        try {
+            const response = await api.get('/components/low_stock_alerts/');
+            return { success: true, data: response.data };
+        } catch (error) {
+            return {
+                success: false,
+                data: [], 
+                message: error.response?.data?.detail || 'Error al cargar alertas'
+            };
+        }
+    },
+
     getProductById: async (id) => {
         try {
             const response = await api.get(`/components/${id}/`);
-            return { 
-                success: true, 
-                data: response.data 
+            return {
+                success: true,
+                data: response.data
             };
         } catch (error) {
-            return { 
-                success: false, 
-                message: 'No se pudo encontrar el componente especificado' 
+            return {
+                success: false,
+                message: 'No se pudo encontrar el componente especificado'
             };
         }
     },
@@ -34,9 +56,9 @@ export const productService = {
     getRecommendations: async () => {
         try {
             const response = await api.get('/components/recommendations/');
-            return { 
-                success: true, 
-                data: response.data 
+            return {
+                success: true,
+                data: response.data
             };
         } catch (error) {
             return { success: false, message: 'Error al cargar recomendaciones' };

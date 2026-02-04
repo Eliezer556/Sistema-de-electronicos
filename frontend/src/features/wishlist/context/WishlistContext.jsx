@@ -46,7 +46,36 @@ export const WishlistProvider = ({ children }) => {
                 list.id === wishlistId ? result.data : list
             ));
         } else {
-            console.error("No se pudo guardar en la wishlist:", result.message);
+            console.error("Error al alternar componente:", result.message);
+        }
+    };
+
+    const updateItemQuantity = async (wishlistId, productId, newQuantity) => {
+        if (newQuantity < 1) return;
+
+        const result = await wishlistService.updateQuantity(wishlistId, productId, newQuantity);
+
+        if (result.success) {
+            setWishlists(prev => prev.map(list =>
+                list.id === wishlistId ? result.data : list
+            ));
+        } else {
+            console.error("Error al actualizar cantidad:", result.message);
+        }
+    };
+
+    const clearWishlist = async () => {
+        if (wishlists.length === 0) return;
+        
+        const wishlistId = wishlists[0].id;
+        const result = await wishlistService.clearWishlist(wishlistId);
+
+        if (result.success) {
+            setWishlists(prev => prev.map(list =>
+                list.id === wishlistId ? result.data : list
+            ));
+        } else {
+            console.error("Error al vaciar la lista:", result.message);
         }
     };
 
@@ -62,6 +91,8 @@ export const WishlistProvider = ({ children }) => {
             fetchWishlists,
             createNewWishlist,
             toggleComponentInList,
+            updateItemQuantity,
+            clearWishlist,
             isInSpecificWishlist
         }}>
             {children}
