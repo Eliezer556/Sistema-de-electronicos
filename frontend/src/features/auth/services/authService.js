@@ -33,10 +33,23 @@ export const authService = {
     register: async (userData) => {
         try {
             const response = await api.post('/users/', userData);
-            return {
-                success: true,
-                data: response.data
-            };
+            if (response.data.access) {
+                const { access, refresh, role, user } = response.data;
+                const userDataFormatted = user || { email: userData.email, role };
+
+                localStorage.setItem('token', access);
+                localStorage.setItem('refresh_token', refresh);
+                localStorage.setItem('user_role', role);
+                localStorage.setItem('user_data', JSON.stringify(userDataFormatted));
+
+                return {
+                    success: true,
+                    data: response.data,
+                    user: userDataFormatted
+                };
+            }
+
+            return { success: true, data: response.data };
         } catch (error) {
             return handleApiError(error, 'Error al crear la cuenta');
         }
@@ -63,9 +76,9 @@ export const authService = {
     deleteAccount: async () => {
         try {
             const response = await api.delete('/users/delete-account/');
-            return { 
-                success: true, 
-                status: response.status 
+            return {
+                success: true,
+                status: response.status
             };
         } catch (error) {
             return handleApiError(error, 'Error al intentar eliminar la cuenta');

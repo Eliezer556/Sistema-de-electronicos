@@ -1,8 +1,8 @@
 import api from "../../../api/axios";
 
 export const inventoryService = {
-    getStores: async () => {
-        const response = await api.get('/stores/');
+    getStoreData: async () => {
+        const response = await api.get('/stores/?manage=true');
         return response.data;
     },
 
@@ -12,8 +12,17 @@ export const inventoryService = {
     },
 
     updateStore: async (id, storeData) => {
-        const response = await api.patch(`/stores/${id}/`, storeData, {
-            headers: { 'Content-Type': 'multipart/form-data' }
+        const cleanId = typeof id === 'object' ? id.id : id;
+
+        if (!cleanId) {
+            throw new Error("ID de tienda no proporcionado");
+        }
+
+        // Importante: storeData aquí ya debe ser un objeto FormData
+        const response = await api.patch(`/stores/${cleanId}/`, storeData, {
+            headers: {
+                'Content-Type': 'multipart/form-data'
+            }
         });
         return response.data;
     },
@@ -50,7 +59,7 @@ export const inventoryService = {
     downloadInventoryExcel: async () => {
         try {
             const response = await api.get('/components/download_excel/', {
-                responseType: 'blob' 
+                responseType: 'blob'
             });
 
             const url = window.URL.createObjectURL(new Blob([response.data]));

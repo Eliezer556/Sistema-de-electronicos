@@ -24,12 +24,12 @@ REQUERIMIENTOS DEL SISTEMA
 
 <!-- -> Agregar la API interna para ver el mapa de la ubicacion de la tienda -->
 
--> Tiendas mas buscadas y con mayor ventas
+<!-- -> Tiendas mas buscadas y con mayor ventas -->
 
--> Poner una alerta de Stock en el perfil del usuario
+<!-- -> Poner una alerta de Stock en el perfil del usuario -->
 
-YAGMAIL BIBLIOTECA PARA CORREOS
--> Probar le envio de correos para la recuperacion del gmail.
-
+<!-- YAGMAIL BIBLIOTECA PARA CORREOS
+-> Probar le envio de correos para la recuperacion del gmail. -->
+<!-- 
 ESTADISTICAS
--> gestion de inventarios - totales de componentes
+-> gestion de inventarios - totales de componentes -->

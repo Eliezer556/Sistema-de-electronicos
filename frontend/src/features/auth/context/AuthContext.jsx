@@ -63,6 +63,16 @@ export const AuthProvider = ({ children }) => {
         return result;
     };
 
+    const register = async (userData) => {
+        const result = await authService.register(userData);
+
+        if (result.success && result.user) {
+            setUser(result.user);
+        }
+
+        return result;
+    };
+
     const logout = () => {
         authService.logout();
         setUser(null);
@@ -73,6 +83,7 @@ export const AuthProvider = ({ children }) => {
         user,
         login,
         logout,
+        register,
         loading,
         hasStockAlert,
         checkStockAlerts,

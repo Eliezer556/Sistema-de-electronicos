@@ -1,4 +1,5 @@
 import React, { useMemo } from 'react';
+import { useEffect } from 'react';
 import { MapPin, Store as StoreIcon, ExternalLink, Star, Navigation, X, MessageSquare, ArrowLeft } from 'lucide-react';
 import { getDistance } from './StoreList';
 import { InteractiveRating } from './InteractiveRating';
@@ -7,7 +8,16 @@ import { StoreApiMap } from '../../../storeApi/StoreApiMap';
 
 const MAPTILER_KEY = "Zz7Zqun983rj2N26CNUp";
 
-export function StoreFullPage({ store, onClose, currentUser, onVoteSuccess }) {
+export function StoreFullPage({ store, onClose, currentUser, onVoteSuccess, userTesting}) {
+
+    useEffect(() => {
+        console.log('StoreFullPage.jsx tu usuario: ', currentUser)
+    }, [])
+
+    useEffect(() => {
+        console.log('StoreFullPage.jsx tu usuario testing: ', userTesting)
+    }, [])
+
     if (!store) return null;
 
     return (
@@ -129,7 +139,7 @@ export function StoreFullPage({ store, onClose, currentUser, onVoteSuccess }) {
 
                         <div className="max-h-[600px] overflow-y-auto pr-2 custom-scrollbar">
                             <StoreReviewsList
-                                reviews={store.reviews}
+                                reviews={store.reviews || []}
                                 currentUser={currentUser}
                                 onReviewDeleted={onVoteSuccess}
                             />
@@ -141,8 +151,16 @@ export function StoreFullPage({ store, onClose, currentUser, onVoteSuccess }) {
     );
 }
 
-export function StoreCard({ store, userLocation, currentUser, onVoteSuccess }) {
+export function StoreCard({ store, userLocation, currentUser, onVoteSuccess, userTesting }) {
     const [isPageOpen, setIsPageOpen] = React.useState(false);
+
+    useEffect(() => {
+        console.log('StoreCard.jsx tu usuario: ', currentUser)
+    }, [])
+
+     useEffect(() => {
+        console.log('StoreCard.jsx tu usuario TESTING: ', userTesting)
+    }, [])
 
     const distance = useMemo(() => {
         if (!userLocation || !store.latitude || !store.longitude) return null;
@@ -188,6 +206,7 @@ export function StoreCard({ store, userLocation, currentUser, onVoteSuccess }) {
             {isPageOpen && (
                 <StoreFullPage
                     store={store}
+                    userTesting={userTesting}
                     currentUser={currentUser}
                     onVoteSuccess={onVoteSuccess}
                     onClose={() => setIsPageOpen(false)}

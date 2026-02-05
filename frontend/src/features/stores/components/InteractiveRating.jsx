@@ -17,20 +17,29 @@ export function InteractiveRating({ storeId, onVoteSuccess }) {
         }
         setSubmitting(true);
         setStatus({ type: '', msg: '' });
+
         try {
-            await reviewService.createReview({ 
-                store: storeId, 
-                rating, 
-                comment: comment || "Sin comentarios" 
+            await reviewService.createReview({
+                store: storeId,
+                rating,
+                comment: comment || "Sin comentarios"
             });
+
+            // 1. Notificamos al padre INMEDIATAMENTE para que dispare el fetch
+            // Esto hace que la lista de abajo se actualice "automáticamente"
+            if (onVoteSuccess) onVoteSuccess();
+
+            // 2. Mostramos el éxito visualmente
             setStatus({ type: 'success', msg: 'Reseña publicada con éxito' });
+
+            // 3. Limpiamos el formulario después de un breve delay
             setTimeout(() => {
-                onVoteSuccess();
                 setShowForm(false);
                 setRating(0);
                 setComment("");
                 setStatus({ type: '', msg: '' });
-            }, 1500);
+            }, 1000);
+
         } catch (err) {
             setStatus({ type: 'error', msg: 'Ya has calificado esta tienda anteriormente' });
         } finally {

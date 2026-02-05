@@ -1,6 +1,7 @@
 from rest_framework import viewsets, permissions, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
+from rest_framework.exceptions import ValidationError
 from .models import Review, Wishlist, WishlistItem, StockNotification, SearchHistory
 from .serializers import ReviewSerializer, WishlistSerializer
 from rest_framework.permissions import IsAdminUser
@@ -24,6 +25,17 @@ class ReviewViewSet(viewsets.ModelViewSet):
         return queryset
 
     def perform_create(self, serializer):
+        store = serializer.validated_data.get('store')
+        already_exists = Review.objects.filter(
+            user=self.request.user, 
+            store=store
+        ).exists()
+        
+        if already_exists:
+            raise ValidationError(
+                {"error": "Ya has dejado una reseña para esta tienda. Solo se permite una por cliente."}
+            )
+            
         serializer.save(user=self.request.user)
 
     def destroy(self, request, *args, **kwargs):
@@ -31,7 +43,7 @@ class ReviewViewSet(viewsets.ModelViewSet):
         if instance.user != request.user:
             return Response(
                 {"error": "No tienes permiso para eliminar esta reseña."}, 
-                status=status.HTTP_403_FOR_PERMISSION_DENIED
+                status=status.HTTP_403_FORBIDDEN
             )
         return super().destroy(request, *args, **kwargs)
 

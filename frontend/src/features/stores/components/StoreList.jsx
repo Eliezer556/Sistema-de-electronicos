@@ -25,7 +25,7 @@ export function StoreList() {
     const [userLocation, setUserLocation] = useState(null);
     const [searchTerm, setSearchTerm] = useState('');
     const [filters, setFilters] = useState({ minRating: 0, maxDistance: 10 });
-    
+
     // Estado para manejar la vista de detalle
     const [selectedStore, setSelectedStore] = useState(null);
 
@@ -39,6 +39,17 @@ export function StoreList() {
             console.error("Error fetching stores:", err);
         }
     };
+
+    const USUARIO_PRUEBA = {
+        id: 1,
+        name: 'juan',
+        correo: 'juan@gmail.com',
+        clave: '123123'
+    }
+
+    useEffect(() => {
+        console.log('StoreList.jsx tu usuario: ', user)
+    }, [])
 
     useEffect(() => {
         const initData = async () => {
@@ -81,22 +92,23 @@ export function StoreList() {
 
     if (loading) return <Loading />;
 
-    // --- VISTA DE DETALLE (FULL PAGE) ---
     if (selectedStore) {
         return (
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 flex justify-center">
                 <div className="w-full">
-                    {/* Botón para volver a la lista */}
-                    <button 
+                    <button
                         onClick={() => setSelectedStore(null)}
                         className="mb-8 flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-gray-400 hover:text-purple-500 transition-colors"
                     >
                         <RotateCcw size={14} /> Volver a las tiendas
                     </button>
-                    
-                    <StoreFullPage 
-                        store={selectedStore} 
-                        userLocation={userLocation} 
+
+                    <StoreFullPage
+                        store={selectedStore}
+                        userLocation={userLocation}
+                        currentUser={user}
+                        userTesting={USUARIO_PRUEBA}
+                        onVoteSuccess={fetchStores} 
                     />
                 </div>
             </div>
@@ -190,6 +202,7 @@ export function StoreList() {
                             <StoreCard
                                 store={store}
                                 userLocation={userLocation}
+                                userTesting={USUARIO_PRUEBA}
                                 currentUser={user}
                                 onVoteSuccess={fetchStores}
                             />
