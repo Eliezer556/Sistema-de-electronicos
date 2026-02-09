@@ -152,6 +152,11 @@ MEDIA_URL = '/media/'
 
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
-# Configuracion de correos en desarrollo
-EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
-DEFAULT_FROM_EMAIL = 'soporte.unefa@gmail.com'
+# Configuración para envío de correos reales con Gmail
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_USE_TLS = True
+EMAIL_PORT = 587
+EMAIL_HOST_USER = 'el500gamer@gmail.com'  # Tu correo de Gmail
+EMAIL_HOST_PASSWORD = 'icfw czcz ptfx toyl'  # La contraseña de 16 dígitos que generaste
+DEFAULT_FROM_EMAIL = 'Sistema Electronicos <el500gamer@gmail.com>'

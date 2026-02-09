@@ -19,8 +19,8 @@ export const AppRouter = () => {
                 <Route path="/login" element={<LoginForm />} />
 
                 <Route path="/register" element={<RegisterForm />} />
-                <Route path="/forgot-passwword" element={<ForgotPassword />} />
-                <Route path="/reset-password/:uidb64/:token" element={<ResetPasswordConfirm />} />
+                <Route path="/forgot-password" element={<ForgotPassword />} />
+                <Route path="/reset-password/:uid/:token" element={<ResetPasswordConfirm />} />
 
                 <Route element={<MainLayout />}>
                     <Route path="/" element={<ProductList />} />

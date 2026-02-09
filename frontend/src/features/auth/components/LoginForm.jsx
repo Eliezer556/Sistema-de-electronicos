@@ -111,7 +111,7 @@ export const LoginForm = () => {
                         </Link>
                         </p>
                     <Link
-                        to="/forgot-passwword"
+                        to="/forgot-password"
                         className="text-[10px] font-bold text-gray-500 hover:text-blue-400 uppercase tracking-widest transition-colors"
                     >
                         ¿Olvidaste tu contraseña?

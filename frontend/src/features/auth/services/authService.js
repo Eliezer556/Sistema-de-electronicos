@@ -88,8 +88,8 @@ export const authService = {
     confirmPasswordReset: async (uidb64, token, newPassword) => {
         try {
             const response = await api.post('/users/password-reset-confirm/', {
-                uidb64,
-                token,
+                uid: uidb64,      // <--- Cambiamos 'uidb64' por 'uid'
+                token: token,    // El token se queda igual
                 new_password: newPassword
             });
             return { success: true, data: response.data };

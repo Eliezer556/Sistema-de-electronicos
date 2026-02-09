@@ -77,16 +77,20 @@ class UserViewSet(viewsets.ModelViewSet):
         
         return Response({"detail": "Si el email existe, se envió un enlace."}, status=status.HTTP_200_OK)
 
+    # En views.py
     @action(detail=False, methods=['post'], url_path='password-reset-confirm')
     def password_reset_confirm(self, request):
-        uidb64 = request.data.get('uidb64')
+        # Cambiamos 'uidb64' por 'uid' para que coincida con tu authService
+        uid_from_web = request.data.get('uid') 
         token = request.data.get('token')
+        print(f"DEBUG: UID recibido: {uid_from_web}, Token recibido: {token}")
         new_password = request.data.get('new_password')
 
         try:
-            uid = urlsafe_base64_decode(uidb64).decode()
+            # Usamos la variable que acabamos de recibir
+            uid = urlsafe_base64_decode(uid_from_web).decode()
             user = User.objects.get(pk=uid)
-        except (TypeError, ValueError, OverflowError, User.DoesNotExist):
+        except (TypeError, ValueError, OverflowError, User.DoesNotExist, AttributeError):
             user = None
 
         if user and default_token_generator.check_token(user, token):
