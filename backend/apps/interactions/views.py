@@ -2,11 +2,16 @@ from rest_framework import viewsets, permissions, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.exceptions import ValidationError
+
+# MODELS IMPORTS
+from apps.users.models import User
 from .models import Review, Wishlist, WishlistItem, StockNotification, SearchHistory
+from apps.stores.models import Store
+from apps.inventory.models import Component
+
 from .serializers import ReviewSerializer, WishlistSerializer
 from rest_framework.permissions import IsAdminUser
-from apps.inventory.models import Component
-from django.db.models import Count, Sum, Q
+from django.db.models import Count, Sum, Q, Avg
 
 class ReviewViewSet(viewsets.ModelViewSet):
     queryset = Review.objects.all()
@@ -24,29 +29,59 @@ class ReviewViewSet(viewsets.ModelViewSet):
             queryset = queryset.filter(store_id=store_id)
         return queryset
 
+    def _update_store_stats(self, store):
+        """
+        Recalcula el promedio de estrellas y el total de reseñas de la tienda.
+        """
+        stats = store.reviews.aggregate(
+            avg_rating=Avg('rating'), 
+            count=Count('id')
+        )
+        store.rating = stats['avg_rating'] or 0.0
+        store.review_count = stats['count'] or 0
+        store.save()
+
     def perform_create(self, serializer):
         store = serializer.validated_data.get('store')
-        already_exists = Review.objects.filter(
-            user=self.request.user, 
-            store=store
-        ).exists()
         
-        if already_exists:
-            raise ValidationError(
-                {"error": "Ya has dejado una reseña para esta tienda. Solo se permite una por cliente."}
-            )
+        # Validación: Solo una reseña por usuario/tienda
+        if Review.objects.filter(user=self.request.user, store=store).exists():
+            raise ValidationError({"error": "Ya has dejado una reseña para esta tienda."})
             
-        serializer.save(user=self.request.user)
+        review = serializer.save(user=self.request.user)
+        self._update_store_stats(store)
+
+    def update(self, request, *args, **kwargs):
+        """
+        Validación de seguridad para asegurar que solo el dueño edite.
+        """
+        instance = self.get_object()
+        if instance.user != request.user:
+            return Response(
+                {"error": "No tienes permiso para editar esta reseña."}, 
+                status=status.HTTP_403_FORBIDDEN
+            )
+        return super().update(request, *args, **kwargs)
+
+    def perform_update(self, serializer):
+        # Al actualizar, guardamos y recalculamos stats de la tienda
+        review = serializer.save()
+        self._update_store_stats(review.store)
 
     def destroy(self, request, *args, **kwargs):
         instance = self.get_object()
+        store = instance.store
+        
         if instance.user != request.user:
             return Response(
                 {"error": "No tienes permiso para eliminar esta reseña."}, 
                 status=status.HTTP_403_FORBIDDEN
             )
-        return super().destroy(request, *args, **kwargs)
-
+        
+        response = super().destroy(request, *args, **kwargs)
+        self._update_store_stats(store)
+        return response
+    
 class WishlistViewSet(viewsets.ModelViewSet):
     serializer_class = WishlistSerializer
     permission_classes = [permissions.IsAuthenticated]
@@ -169,6 +204,14 @@ class AnalyticsViewSet(viewsets.ViewSet):
     permission_classes = [IsAdminUser]
 
     def list(self, request):
+        user_stats = User.objects.aggregate(
+            total_clientes=Count('id', filter=Q(role='cliente')),
+            total_proveedores=Count('id', filter=Q(role='proveedor')),
+            total_general=Count('id')
+        )
+        
+        top_stores = Store.objects.all().order_by('-rating', '-review_count')[:5]
+        
         top_searches = SearchHistory.objects.values('query').annotate(
             count=Count('query')).order_by('-count')[:5]
 
@@ -182,6 +225,12 @@ class AnalyticsViewSet(viewsets.ViewSet):
         )
 
         return Response({
+            'user_summary': {
+                'clientes': user_stats['total_clientes'],
+                'proveedores': user_stats['total_proveedores'],
+                'total': user_stats['total_general']
+            },
+            'top_stores': list(top_stores.values('name', 'rating', 'review_count')),
             'top_searches': list(top_searches),
             'stock_demands': list(stock_demands),
             'inventory_summary': {
@@ -189,4 +238,4 @@ class AnalyticsViewSet(viewsets.ViewSet):
                 'out_of_stock_count': inventory_stats['out_of_stock'],
                 'total_components': inventory_stats['total_items']
             }
-        })
+        }, status=status.HTTP_200_OK)

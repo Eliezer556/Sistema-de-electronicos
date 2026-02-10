@@ -1,4 +1,5 @@
 from rest_framework import viewsets, permissions, exceptions
+from rest_framework.response import Response
 from .models import Store
 from .serializers import StoreSerializer
 from geopy.distance import geodesic
@@ -32,8 +33,6 @@ class StoreViewSet(viewsets.ModelViewSet):
         2. Filtrar por dueño cuando se usa el parámetro ?manage=true.
         """
         queryset = Store.objects.all()
-        
-        # --- Lógica de Geolocalización ---
         user_lat = self.request.query_params.get('lat')
         user_lon = self.request.query_params.get('lon')
 
@@ -51,8 +50,6 @@ class StoreViewSet(viewsets.ModelViewSet):
             except ValueError:
                 pass 
 
-        # --- Filtro para Panel de Gestión del Proveedor ---
-        # Solo filtramos el listado si el usuario está intentando gestionar su tienda
         if self.action == 'list' and self.request.query_params.get('manage'):
             if self.request.user.is_authenticated and not self.request.user.is_staff:
                 return queryset.filter(owner=self.request.user)
@@ -90,3 +87,12 @@ class StoreViewSet(viewsets.ModelViewSet):
         El permiso IsStoreOwner ya validó la propiedad, aquí solo guardamos.
         """
         serializer.save()
+        
+    def retrieve(self, request, *args, **kwargs):
+        """
+        Este método responde a GET /api/stores/<id>/
+        Es el que llama tu refreshStoreData()
+        """
+        instance = self.get_object()
+        serializer = self.get_serializer(instance)
+        return Response(serializer.data)

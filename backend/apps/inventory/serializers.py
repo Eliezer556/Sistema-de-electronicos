@@ -22,7 +22,7 @@ class ComponentSerializer(serializers.ModelSerializer):
             'id', 'store', 'store_name', 'category', 'category_name',
             'name', 'mpn', 'description', 'price', 'stock',
             'image', 'datasheet_url', 'technical_specs', 'is_available',
-            'times_in_wishlist', 'stock_status'
+            'times_in_wishlist', 'stock_status', 'offer_price', 'is_on_offer'
         ]
         
     def get_times_in_wishlist(self, obj):
@@ -36,3 +36,15 @@ class ComponentSerializer(serializers.ModelSerializer):
         elif obj.stock <= 5:
             return "Baja Disponibilidad"
         return "Disponible"
+    
+    def validate(self, data):
+        price = data.get('price')
+        offer_price = data.get('offer_price')
+        is_on_offer = data.get('is_on_offer')
+
+        if is_on_offer and offer_price and price:
+            if offer_price >= price:
+                raise serializers.ValidationError(
+                    {"offer_price": "El precio de oferta debe ser menor al precio original."}
+                )
+        return data

@@ -30,5 +30,15 @@ export const reviewService = {
             console.error("Error al eliminar reseña:", error);
             throw error;
         }
-    }
+    },
+
+    updateReview: async (reviewId, reviewData) => {
+        try {
+            const response = await api.patch(`/reviews/${reviewId}/`, reviewData);
+            return response.data;
+        } catch (error) {
+            console.error("Error en reviewService.updateReview:", error.response?.data || error.message);
+            throw error;
+        }
+    },
 };

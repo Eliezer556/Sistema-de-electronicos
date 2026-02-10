@@ -1,9 +1,10 @@
 import api from "../../../api/axios";
 
 export const productService = {
-    getAllProducts: async () => {
+    getAllProducts: async (params = {}) => {
         try {
-            const response = await api.get('/components/');
+            // Axios ignora automáticamente los parámetros si el objeto está vacío
+            const response = await api.get('/components/', { params });
             return {
                 success: true,
                 data: response.data
@@ -11,7 +12,7 @@ export const productService = {
         } catch (error) {
             return {
                 success: false,
-                message: error.response?.data?.detail || 'Error al cargar los componentes electrónicos'
+                message: error.response?.data?.detail || 'Error al cargar los componentes'
             };
         }
     },
@@ -32,7 +33,7 @@ export const productService = {
         } catch (error) {
             return {
                 success: false,
-                data: [], 
+                data: [],
                 message: error.response?.data?.detail || 'Error al cargar alertas'
             };
         }
@@ -63,5 +64,21 @@ export const productService = {
         } catch (error) {
             return { success: false, message: 'Error al cargar recomendaciones' };
         }
-    }
+    },
+
+    getPriceComparison: async (productId) => {
+        try {
+            const response = await api.get(`/components/${productId}/price_comparison/`);
+            return {
+                success: true,
+                data: response.data
+            };
+        } catch (error) {
+            console.error("Error en getPriceComparison:", error);
+            return {
+                success: false,
+                message: error.response?.data?.detail || 'Error al obtener la comparativa de precios'
+            };
+        }
+    },
 };

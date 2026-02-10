@@ -14,7 +14,7 @@ const WishlistPage = () => {
         doc.setFontSize(10);
         doc.setTextColor(150);
         doc.text(`FECHA DE EMISIÓN: ${new Date().toLocaleDateString()}`, 14, 30);
-        doc.text(`ID PROYECTO: ${list.id}`, 14, 35);
+        // doc.text(`ID PROYECTO: ${list.id}`, 14, 35);
 
         const tableColumn = ["COMPONENTE", "TIENDA", "CANT.", "P. UNIT", "SUBTOTAL"];
         const tableRows = list.items.map(item => [

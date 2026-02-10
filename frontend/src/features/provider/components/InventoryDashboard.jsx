@@ -21,7 +21,9 @@ export const InventoryDashboard = () => {
 
     const [formData, setFormData] = useState({
         name: '', mpn: '', description: '', price: '', stock: '',
-        category: '', datasheet_url: '', is_available: true, image: null
+        category: '', datasheet_url: '', is_available: true, image: null,
+        is_on_offer: false,
+        offer_price: ''
     });
 
     const [techSpecs, setTechSpecs] = useState([{ key: '', value: '' }]);
@@ -68,6 +70,11 @@ export const InventoryDashboard = () => {
         if (!formData.price || parseFloat(formData.price) <= 0) newErrors.price = "Precio inválido";
         if (formData.stock === '' || parseInt(formData.stock) < 0) newErrors.stock = "Stock inválido";
 
+        // Cambio de is_on_sale a is_on_offer aquí
+        if (formData.is_on_offer && (!formData.offer_price || parseFloat(formData.offer_price) <= 0)) {
+            newErrors.offer_price = "El precio de oferta es obligatorio si la oferta está activa";
+        }
+
         if (formData.datasheet_url && formData.datasheet_url.trim() !== "") {
             try { new URL(formData.datasheet_url); }
             catch (_) { newErrors.datasheet_url = "URL inválida (use http/https)"; }
@@ -84,7 +91,9 @@ export const InventoryDashboard = () => {
             setFormData({
                 name: item.name, mpn: item.mpn, description: item.description || '',
                 price: item.price, stock: item.stock, category: item.category,
-                datasheet_url: item.datasheet_url || '', is_available: item.is_available, image: null
+                datasheet_url: item.datasheet_url || '', is_available: item.is_available, image: null,
+                is_on_offer: item.is_on_offer || false,
+                offer_price: item.offer_price || '',
             });
             const specs = item.technical_specs && typeof item.technical_specs === 'object'
                 ? Object.entries(item.technical_specs).map(([key, value]) => ({ key, value }))
@@ -92,7 +101,11 @@ export const InventoryDashboard = () => {
             setTechSpecs(specs.length > 0 ? specs : [{ key: '', value: '' }]);
         } else {
             setEditingItem(null);
-            setFormData({ name: '', mpn: '', description: '', price: '', stock: '0', category: '', datasheet_url: '', is_available: true, image: null });
+            setFormData({
+                name: '', mpn: '', description: '', price: '', stock: '0',
+                category: '', datasheet_url: '', is_available: true, image: null,
+                is_on_offer: false, offer_price: ''
+            });
             setTechSpecs([{ key: '', value: '' }]);
         }
         setIsModalOpen(true);
@@ -103,9 +116,19 @@ export const InventoryDashboard = () => {
         if (!validateForm()) return;
 
         const data = new FormData();
+
+        // Procesamos cada llave manualmente para asegurar el formato
         Object.keys(formData).forEach(key => {
-            if (key === 'image' && !(formData[key] instanceof File)) return;
-            data.append(key, formData[key]);
+            if (key === 'image') {
+                if (formData[key] instanceof File) {
+                    data.append(key, formData[key]);
+                }
+            } else if (typeof formData[key] === 'boolean') {
+                // ENVIAR BOOLEANOS COMO STRING: Django REST los entenderá correctamente
+                data.append(key, formData[key] ? 'true' : 'false');
+            } else if (formData[key] !== null && formData[key] !== undefined) {
+                data.append(key, formData[key]);
+            }
         });
 
         const specsObj = {};
@@ -292,6 +315,182 @@ export const InventoryDashboard = () => {
             )}
 
             {isModalOpen && (
+                <div className="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-4 bg-black/90 backdrop-blur-md">
+                    <div className="bg-[#0a0a0a] border border-gray-800 w-full max-w-4xl rounded-xl shadow-2xl flex flex-col max-h-[92vh] animate-in zoom-in-95 duration-200">
+
+                        {/* Header más compacto */}
+                        <div className="flex justify-between items-center p-5 border-b border-white/5">
+                            <div>
+                                <h3 className="text-xl md:text-2xl font-bold text-white uppercase tracking-tight">
+                                    {editingItem ? 'Sincronizar Item' : 'Registro de Activo'}
+                                </h3>
+                                <p className="text-[9px] text-gray-500 font-bold uppercase tracking-widest mt-0.5">Ingeniería de Inventario V3.0</p>
+                            </div>
+                            <button
+                                onClick={() => setIsModalOpen(false)}
+                                className="bg-gray-900/50 p-2 rounded-lg text-gray-500 hover:text-white hover:bg-red-950/30 transition-all"
+                            >
+                                <X size={20} />
+                            </button>
+                        </div>
+
+                        {/* Cuerpo del Formulario */}
+                        <div className="flex-1 overflow-y-auto p-5 md:p-8 scrollbar-thin scrollbar-thumb-gray-800">
+                            <form className="space-y-6">
+                                {errors.server && (
+                                    <div className="bg-red-900/10 border border-red-900/30 p-3 rounded-lg flex items-center gap-3 text-red-500 text-[10px] font-bold uppercase tracking-widest">
+                                        <AlertTriangle size={14} /> {errors.server}
+                                    </div>
+                                )}
+
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                                    {/* Input Nombre - Full Width */}
+                                    <div className="col-span-1 md:col-span-2 space-y-1.5">
+                                        <label className="text-[10px] font-bold text-gray-500 uppercase tracking-wider ml-1">Nombre Comercial del Producto</label>
+                                        <input
+                                            className={`w-full bg-black border ${errors.name ? 'border-red-900' : 'border-gray-800'} rounded-lg px-4 py-3 text-sm text-white outline-none focus:border-purple-600 focus:ring-1 focus:ring-purple-600/20 transition-all`}
+                                            value={formData.name}
+                                            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                                        />
+                                        {errors.name && <span className="text-[9px] text-red-500 font-bold uppercase ml-1">{errors.name}</span>}
+                                    </div>
+
+                                    {/* MPN y Categoría */}
+                                    <div className="space-y-1.5">
+                                        <label className="text-[10px] font-bold text-gray-500 uppercase tracking-wider ml-1">MPN (Cód. Fabricante)</label>
+                                        <input
+                                            className={`w-full bg-black border ${errors.mpn ? 'border-red-900' : 'border-gray-800'} rounded-lg px-4 py-3 text-sm text-white outline-none focus:border-purple-600 transition-all font-mono`}
+                                            value={formData.mpn}
+                                            onChange={(e) => setFormData({ ...formData, mpn: e.target.value })}
+                                        />
+                                    </div>
+
+                                    <div className="space-y-1.5">
+                                        <label className="text-[10px] font-bold text-gray-500 uppercase tracking-wider ml-1">Categoría de Sistema</label>
+                                        <select
+                                            className="w-full bg-black border border-gray-800 rounded-lg px-4 py-3 text-sm text-white outline-none appearance-none focus:border-purple-600"
+                                            value={formData.category}
+                                            onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                                        >
+                                            <option value="">-- SELECCIONAR --</option>
+                                            {categories.map(cat => <option key={cat.id} value={cat.id}>{cat.name}</option>)}
+                                        </select>
+                                    </div>
+
+                                    {/* Precio y Stock */}
+                                    <div className="space-y-1.5">
+                                        <label className="text-[10px] font-bold text-gray-500 uppercase tracking-wider ml-1">Precio Unitario ($)</label>
+                                        <input type="number" step="any" className="w-full bg-black border border-gray-800 rounded-lg px-4 py-3 text-sm text-white outline-none focus:border-purple-600" value={formData.price} onChange={(e) => setFormData({ ...formData, price: e.target.value })} />
+                                    </div>
+
+                                    <div className="space-y-1.5">
+                                        <label className="text-[10px] font-bold text-gray-500 uppercase tracking-wider ml-1">Unidades en Stock</label>
+                                        <input type="number" className="w-full bg-black border border-gray-800 rounded-lg px-4 py-3 text-sm text-white outline-none focus:border-purple-600" value={formData.stock} onChange={(e) => setFormData({ ...formData, stock: e.target.value })} />
+                                    </div>
+
+                                    {/* Datasheet */}
+                                    <div className="col-span-1 md:col-span-2 space-y-1.5">
+                                        <label className="text-[10px] font-bold text-gray-500 uppercase tracking-wider ml-1 flex items-center gap-2">
+                                            <LinkIcon size={12} className="text-purple-500" /> Vínculo Datasheet (URL PDF)
+                                        </label>
+                                        <input
+                                            type="url"
+                                            placeholder="https://example.com/datasheet.pdf"
+                                            className={`w-full bg-black border ${errors.datasheet_url ? 'border-red-900' : 'border-gray-800'} rounded-lg px-4 py-3 text-sm text-white outline-none focus:border-purple-600`}
+                                            value={formData.datasheet_url}
+                                            onChange={(e) => setFormData({ ...formData, datasheet_url: e.target.value })}
+                                        />
+                                    </div>
+
+                                    {/* Descripción */}
+                                    <div className="col-span-1 md:col-span-2 space-y-1.5">
+                                        <label className="text-[10px] font-bold text-gray-500 uppercase tracking-wider ml-1">Descripción de Ingeniería</label>
+                                        <textarea rows="3" className="w-full bg-black border border-gray-800 rounded-lg px-4 py-3 text-sm text-white outline-none focus:border-purple-600 transition-all resize-none" value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} />
+                                    </div>
+                                </div>
+
+                                {/* Sección Parámetros Técnicos */}
+                                <div className="pt-6 border-t border-white/5">
+                                    <div className="flex justify-between items-center mb-4">
+                                        <label className="text-[10px] font-black text-purple-500 uppercase tracking-[0.2em] flex items-center gap-2">
+                                            <Settings2 size={16} /> Parámetros Técnicos
+                                        </label>
+                                        <button
+                                            type="button"
+                                            onClick={() => setTechSpecs([...techSpecs, { key: '', value: '' }])}
+                                            className="text-[9px] font-bold text-white uppercase bg-purple-700 px-4 py-2 rounded-md hover:bg-purple-600 transition-all"
+                                        >
+                                            + Añadir
+                                        </button>
+                                    </div>
+                                    <div className="space-y-3">
+                                        {techSpecs.map((spec, index) => (
+                                            <div key={index} className="flex gap-2 items-center animate-in slide-in-from-top-1 duration-200">
+                                                <input placeholder="Característica" className="flex-1 bg-black border border-gray-800 rounded-md px-4 py-2.5 text-[11px] text-purple-400 outline-none uppercase font-bold" value={spec.key} onChange={(e) => {
+                                                    const n = [...techSpecs]; n[index].key = e.target.value; setTechSpecs(n);
+                                                }} />
+                                                <input placeholder="Valor" className="flex-1 bg-black border border-gray-800 rounded-md px-4 py-2.5 text-[11px] text-white outline-none" value={spec.value} onChange={(e) => {
+                                                    const n = [...techSpecs]; n[index].value = e.target.value; setTechSpecs(n);
+                                                }} />
+                                                <button type="button" onClick={() => setTechSpecs(techSpecs.filter((_, i) => i !== index))} className="p-2 text-gray-600 hover:text-red-500"><Trash2 size={18} /></button>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+
+                                {/* Footer del Form (Toggles) */}
+                                <div className="flex flex-wrap gap-4 pt-6 border-t border-white/5">
+                                    <div className="flex-1 min-w-[200px] space-y-1.5">
+                                        <label className="text-[10px] font-bold text-gray-500 uppercase tracking-wider ml-1">Imagen</label>
+                                        <input type="file" accept="image/*" className="w-full text-[10px] text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:bg-white/5 file:text-white file:text-[10px] file:font-bold file:uppercase file:cursor-pointer hover:file:bg-white/10" onChange={(e) => setFormData({ ...formData, image: e.target.files[0] })} />
+                                    </div>
+
+                                    <div className="flex gap-3">
+                                        <div className="flex items-center gap-3 bg-black px-4 py-2 rounded-lg border border-gray-800">
+                                            <span className="text-[9px] font-bold text-gray-500 uppercase">Disponible</span>
+                                            <button type="button" onClick={() => setFormData({ ...formData, is_available: !formData.is_available })} className={`w-10 h-5 rounded-full transition-all relative ${formData.is_available ? 'bg-purple-600' : 'bg-gray-800'}`}>
+                                                <div className={`absolute top-1 w-3 h-3 bg-white rounded-full transition-all ${formData.is_available ? 'right-1' : 'left-1'}`} />
+                                            </button>
+                                        </div>
+
+                                        <div className="flex items-center gap-3 bg-black px-4 py-2 rounded-lg border border-gray-800">
+                                            <span className="text-[9px] font-bold text-gray-500 uppercase">Oferta</span>
+                                            <button type="button" onClick={() => setFormData({ ...formData, is_on_offer: !formData.is_on_offer })} className={`w-10 h-5 rounded-full transition-all relative ${formData.is_on_offer ? 'bg-orange-500' : 'bg-gray-800'}`}>
+                                                <div className={`absolute top-1 w-3 h-3 bg-white rounded-full transition-all ${formData.is_on_offer ? 'right-1' : 'left-1'}`} />
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    {formData.is_on_offer && (
+                                        <div className="w-full md:w-auto flex-1 animate-in zoom-in-95 duration-200">
+                                            <input
+                                                type="number"
+                                                step="any"
+                                                className="w-full bg-black border border-orange-900/50 rounded-lg px-4 py-2 text-sm text-white outline-none focus:border-orange-500"
+                                                placeholder="Precio Oferta ($)"
+                                                value={formData.offer_price}
+                                                onChange={(e) => setFormData({ ...formData, offer_price: e.target.value })}
+                                            />
+                                        </div>
+                                    )}
+                                </div>
+                            </form>
+                        </div>
+
+                        {/* Acción Principal */}
+                        <div className="p-5 border-t border-white/5 bg-[#0a0a0a] rounded-b-xl">
+                            <button
+                                onClick={handleSubmit}
+                                className="w-full bg-white text-black font-bold uppercase py-4 rounded-lg hover:bg-purple-600 hover:text-white transition-all flex items-center justify-center gap-3 text-sm tracking-tighter"
+                            >
+                                <Save size={18} /> {editingItem ? 'Sincronizar Cambios' : 'Finalizar Registro'}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* {isModalOpen && (
                 <div className="fixed inset-0 z-[100] flex items-center justify-center p-2 md:p-6 bg-black/98 backdrop-blur-xl">
                     <div className="bg-[#0a0a0a] border border-gray-800 w-full max-w-4xl rounded-[2.5rem] shadow-3xl flex flex-col max-h-[95vh] animate-in zoom-in-95 duration-300">
 
@@ -381,6 +580,33 @@ export const InventoryDashboard = () => {
                                             <div className={`absolute top-1.5 w-4 h-4 bg-white rounded-full transition-all ${formData.is_available ? 'right-1.5' : 'left-1.5'}`} />
                                         </button>
                                     </div>
+                                    <div className="flex items-center gap-5 bg-black px-8 py-5 rounded-3xl border border-gray-800">
+                                        <div className="flex flex-col">
+                                            <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Activar Oferta</span>
+                                            <span className="text-[9px] text-purple-400 font-bold italic">Promoción Especial</span>
+                                        </div>
+                                        <button
+                                            type="button"
+                                            onClick={() => setFormData({ ...formData, is_on_sale: !formData.is_on_sale })}
+                                            className={`w-14 h-7 rounded-full transition-all relative ${formData.is_on_sale ? 'bg-orange-500 shadow-[0_0_15px_rgba(249,115,22,0.4)]' : 'bg-gray-800'}`}
+                                        >
+                                            <div className={`absolute top-1.5 w-4 h-4 bg-white rounded-full transition-all ${formData.is_on_sale ? 'right-1.5' : 'left-1.5'}`} />
+                                        </button>
+                                    </div>
+
+                                    {formData.is_on_sale && (
+                                        <div className="space-y-3 animate-in fade-in slide-in-from-left-4 duration-300">
+                                            <label className="text-[10px] font-black text-orange-500 uppercase tracking-widest ml-1">Precio de Oferta ($)</label>
+                                            <input
+                                                type="number"
+                                                step="any"
+                                                className="w-full bg-black border border-orange-900/50 rounded-2xl px-6 py-5 text-white outline-none focus:border-orange-500 transition-all shadow-[inner_0_2px_10px_rgba(0,0,0,1)]"
+                                                placeholder="Ej: 19.99"
+                                                value={formData.discount_price}
+                                                onChange={(e) => setFormData({ ...formData, discount_price: e.target.value })}
+                                            />
+                                        </div>
+                                    )}
                                 </div>
                             </form>
                         </div>
@@ -392,7 +618,7 @@ export const InventoryDashboard = () => {
                         </div>
                     </div>
                 </div>
-            )}
+            )} */}
         </div>
     );
 };

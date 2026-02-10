@@ -11,6 +11,7 @@ import { StoreList } from '../features/stores/components/StoreList';
 import { PerfilUser } from '../pages/PerfilUser';
 import { ForgotPassword } from '../features/auth/components/ForgotPassword';
 import { ResetPasswordConfirm } from '../features/auth/components/ResetPasswordConfirm';
+import { ProductDetailWrapper } from '../features/products/components/ProductDetailWrapper';
 
 export const AppRouter = () => {
     return (
@@ -22,8 +23,11 @@ export const AppRouter = () => {
                 <Route path="/forgot-password" element={<ForgotPassword />} />
                 <Route path="/reset-password/:uid/:token" element={<ResetPasswordConfirm />} />
 
+
+
                 <Route element={<MainLayout />}>
                     <Route path="/" element={<ProductList />} />
+                    <Route path="/componente/:id" element={<ProductDetailWrapper />} />
 
                     <Route path='/stores' element={<StoreList />} />
 

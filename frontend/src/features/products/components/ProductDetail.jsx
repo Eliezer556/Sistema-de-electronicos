@@ -55,18 +55,7 @@ export const ProductDetail = ({ product, onBack }) => {
                     </div>
 
                     {/* Acciones Secundarias: Datasheet */}
-                    {product.datasheet_url && (
-                        <a
-                            href={product.datasheet_url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="flex items-center justify-center gap-3 w-full py-4 bg-[#1a1a1a] hover:bg-[#222] border border-gray-800 rounded-xl text-[11px] font-bold uppercase tracking-tighter transition-all text-gray-300"
-                        >
-                            <FileText size={16} className="text-blue-500" />
-                            Redirigir a la tienda de origen
-                            <ExternalLink size={12} className="opacity-50" />
-                        </a>
-                    )}
+                
                 </div>
 
                 {/* Columna Información (7/12) */}

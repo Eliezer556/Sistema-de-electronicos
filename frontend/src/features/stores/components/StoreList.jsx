@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Cpu, Puzzle, Store as StoreIcon, Star, Navigation, RotateCcw } from 'lucide-react';
+import { Cpu, Puzzle, Store as StoreIcon, Star, Navigation, RotateCcw} from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { storeService } from '../services/storeService'
 import { StoreSearch } from './StoreSearch';
@@ -73,8 +73,9 @@ export function StoreList() {
         return stores.filter(store => {
             const matchesSearch = store.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                 store.address.toLowerCase().includes(searchTerm.toLowerCase());
-
-            const matchesRating = (store.rating || 0) >= filters.minRating;
+                
+            const currentRating = parseFloat(store.rating || 0);
+            const matchesRating = currentRating >= filters.minRating;
 
             let matchesDistance = true;
             if (userLocation && store.latitude && store.longitude) {
@@ -107,8 +108,7 @@ export function StoreList() {
                         store={selectedStore}
                         userLocation={userLocation}
                         currentUser={user}
-                        userTesting={USUARIO_PRUEBA}
-                        onVoteSuccess={fetchStores} 
+                        onVoteSuccess={fetchStores}
                     />
                 </div>
             </div>

@@ -1,45 +1,74 @@
-import React, { useMemo } from 'react';
-import { useEffect } from 'react';
-import { MapPin, Store as StoreIcon, ExternalLink, Star, Navigation, X, MessageSquare, ArrowLeft } from 'lucide-react';
+import React, { useMemo, useState, useEffect } from 'react';
+import {
+    MapPin, Store as StoreIcon, ExternalLink,
+    Star, Navigation, X, MessageSquare, ArrowLeft,
+    Package, ChevronRight, Cpu, Loader2
+} from 'lucide-react';
 import { getDistance } from './StoreList';
 import { InteractiveRating } from './InteractiveRating';
 import { StoreReviewsList } from './StoreReviewsList';
 import { StoreApiMap } from '../../../storeApi/StoreApiMap';
+import { productService } from '../../products/services/productService';
+import { storeService } from '../services/storeService';
 
 const MAPTILER_KEY = "Zz7Zqun983rj2N26CNUp";
 
-export function StoreFullPage({ store, onClose, currentUser, onVoteSuccess, userTesting}) {
+export function StoreFullPage({ store, onClose, currentUser, onVoteSuccess }) {
+    const [showProducts, setShowProducts] = useState(false);
+    const [localStore, setLocalStore] = useState(store);
+    const [products, setProducts] = useState([]);
+    const [loadingProducts, setLoadingProducts] = useState(false);
+
+
+    const refreshStoreData = async () => {
+        try {
+            const updatedStore = await storeService.getStoreById(store.id);
+            setLocalStore(updatedStore); 
+            if (onVoteSuccess) onVoteSuccess(); 
+        } catch (error) {
+            console.error("Error actualizando datos:", error);
+        }
+    };
 
     useEffect(() => {
-        console.log('StoreFullPage.jsx tu usuario: ', currentUser)
-    }, [])
+        setLocalStore(store);
+    }, [store]);
+
 
     useEffect(() => {
-        console.log('StoreFullPage.jsx tu usuario testing: ', userTesting)
-    }, [])
+        if (showProducts && store?.id) {
+            const fetchStoreProducts = async () => {
+                setLoadingProducts(true);
+                const result = await productService.getAllProducts({ store: store.id });
+                if (result.success) {
+                    setProducts(result.data);
+                }
+                setLoadingProducts(false);
+            };
+            fetchStoreProducts();
+        }
+    }, [showProducts, store?.id]);
 
     if (!store) return null;
 
     return (
         <div className="relative w-full min-h-screen bg-[#050505] flex flex-col overflow-hidden animate-in fade-in duration-500">
-            {/* Nav interna ajustada */}
+            {/* Nav interna */}
             <nav className="h-14 border-b border-white/5 px-4 lg:px-8 flex items-center justify-between bg-black/40 backdrop-blur-md sticky top-0 z-10">
-                <button
-                    onClick={onClose}
-                    className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors group"
-                >
-                    <ArrowLeft size={16} className="group-hover:-translate-x-1 transition-transform" />
-                    <span className="text-[10px] font-black uppercase tracking-[0.2em]">Cerrar Detalle</span>
-                </button>
                 <div className="flex items-center gap-4">
-                    <span className="text-white text-[11px] font-black uppercase italic tracking-tighter">{store.name}</span>
+                    <button onClick={onClose} className="lg:hidden text-gray-400 hover:text-white">
+                        <ArrowLeft size={20} />
+                    </button>
+                    <span className="text-white text-[11px] font-black uppercase italic tracking-tighter">
+                        {store.name}
+                    </span>
                 </div>
             </nav>
 
-            {/* Contenedor de Contenido: Ahora fluye en el layout */}
             <div className="flex-grow flex flex-col lg:flex-row">
                 {/* Panel Izquierdo: Info y Mapa */}
                 <div className="w-full lg:w-3/5 p-6 lg:p-10 space-y-8 border-r border-white/5">
+                    {/* Imagen Principal */}
                     <div className="relative aspect-video bg-gray-900 overflow-hidden border border-white/10 rounded-sm">
                         {store.image ? (
                             <img src={store.image} alt={store.name} className="w-full h-full object-cover" />
@@ -62,7 +91,24 @@ export function StoreFullPage({ store, onClose, currentUser, onVoteSuccess, user
                             <p className="text-gray-400 text-sm leading-relaxed italic border-l-2 border-purple-500 pl-4 py-1">
                                 {store.description || "Componentes de alta fidelidad y servicio técnico especializado."}
                             </p>
+
+                            {/* --- BOTÓN DE INVENTARIO --- */}
+                            <button
+                                onClick={() => setShowProducts(!showProducts)}
+                                className={`mt-4 flex items-center gap-3 px-4 py-2 border transition-all duration-300 ${showProducts
+                                    ? 'bg-purple-600 border-purple-500 text-white'
+                                    : 'bg-white/5 border-white/10 text-gray-400 hover:border-purple-500/50 hover:text-white'
+                                    }`}
+                            >
+                                <Package size={14} />
+                                <span className="text-[10px] font-black uppercase tracking-[0.2em]">
+                                    {showProducts ? 'Ocultar Inventario' : 'Ver Productos en Stock'}
+                                </span>
+                                <ChevronRight size={14} className={`transition-transform duration-300 ${showProducts ? 'rotate-90' : ''}`} />
+                            </button>
                         </div>
+
+                        {/* Rating Card */}
                         <div className="bg-white/[0.02] border border-white/5 p-6 rounded-sm text-center flex flex-col justify-center">
                             <div className="text-[8px] font-black text-gray-400 uppercase tracking-widest mb-2">Rating Global</div>
                             <div className="flex items-baseline justify-center gap-2">
@@ -75,6 +121,53 @@ export function StoreFullPage({ store, onClose, currentUser, onVoteSuccess, user
                                 </span>
                             </div>
                         </div>
+
+                        {/* --- LISTADO DE PRODUCTOS --- */}
+                        {showProducts && (
+                            <div className="col-span-full animate-in slide-in-from-top-4 duration-500 space-y-4 pt-4">
+                                <div className="flex items-center gap-3">
+                                    <div className="h-px flex-grow bg-purple-500/20" />
+                                    <span className="text-[9px] font-black text-purple-500 uppercase tracking-[0.3em]">Hardware Disponible</span>
+                                    <div className="h-px flex-grow bg-purple-500/20" />
+                                </div>
+
+                                {loadingProducts ? (
+                                    <div className="flex justify-center py-10">
+                                        <Loader2 className="text-purple-500 animate-spin" size={24} />
+                                    </div>
+                                ) : (
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                        {products.length > 0 ? (
+                                            products.map((product) => (
+                                                <div key={product.id} className="group flex items-center gap-4 bg-white/[0.01] border border-white/5 p-3 hover:bg-white/[0.03] transition-all">
+                                                    <div className="w-10 h-10 bg-black flex items-center justify-center border border-white/10 shrink-0">
+                                                        {product.image ? (
+                                                            <img src={product.image} className="w-full h-full object-cover opacity-50 group-hover:opacity-100" />
+                                                        ) : <Cpu size={16} className="text-white/20" />}
+                                                    </div>
+                                                    <div className="flex-grow min-w-0">
+                                                        <div className="flex justify-between items-start">
+                                                            <h4 className="text-[10px] font-bold text-white uppercase truncate">{product.name}</h4>
+                                                            <span className="text-[10px] font-black text-purple-500 ml-2">${product.price}</span>
+                                                        </div>
+                                                        <div className="flex items-center gap-2 mt-1">
+                                                            <span className="text-[7px] text-gray-500 font-black uppercase tracking-tighter">{product.mpn}</span>
+                                                            <span className={`text-[7px] font-black px-1 ${product.stock > 0 ? 'text-green-500' : 'text-red-500'}`}>
+                                                                {product.stock > 0 ? `DISPONIBLE: ${product.stock}` : 'AGOTADO'}
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            ))
+                                        ) : (
+                                            <div className="col-span-full py-8 text-center border border-dashed border-white/5">
+                                                <p className="text-[9px] font-black text-gray-600 uppercase">Sin productos registrados en esta sucursal</p>
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
+                            </div>
+                        )}
                     </div>
 
                     {/* Ubicación y Mapa */}
@@ -84,27 +177,21 @@ export function StoreFullPage({ store, onClose, currentUser, onVoteSuccess, user
                                 <div className="p-2 bg-purple-500/10 rounded-sm shrink-0">
                                     <MapPin className="text-purple-500" size={18} />
                                 </div>
-
                                 <div className="min-w-0 flex-1">
-                                    <div className="text-[8px] font-black text-gray-500 uppercase tracking-widest mb-1">
-                                        Ubicación Física
-                                    </div>
-                                    <div className="text-[11px] md:text-xs text-white font-bold uppercase truncate leading-tight" title={store.address}>
+                                    <div className="text-[8px] font-black text-gray-500 uppercase tracking-widest mb-1">Ubicación Física</div>
+                                    <div className="text-[11px] md:text-xs text-white font-bold uppercase truncate leading-tight">
                                         {store.address}
                                     </div>
                                 </div>
                             </div>
-
                             <a
                                 href={`https://www.google.com/maps/search/?api=1&query=${store.latitude},${store.longitude}`}
                                 target="_blank"
                                 rel="noreferrer"
                                 className="w-full sm:w-auto px-5 py-3 bg-white text-black hover:bg-purple-600 hover:text-white transition-all flex items-center justify-center gap-3 rounded-sm group shrink-0"
                             >
-                                <span className="text-[9px] font-black uppercase tracking-[0.15em] whitespace-nowrap">
-                                    Abrir GPS
-                                </span>
-                                <ExternalLink size={14} className="group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
+                                <span className="text-[9px] font-black uppercase tracking-[0.15em]">Abrir GPS</span>
+                                <ExternalLink size={14} />
                             </a>
                         </div>
 
@@ -118,7 +205,7 @@ export function StoreFullPage({ store, onClose, currentUser, onVoteSuccess, user
                     </div>
                 </div>
 
-                {/* Panel Derecho: Activity Feed */}
+                {/* Panel Derecho: Comunidad */}
                 <div className="w-full lg:w-2/5 bg-black/20 p-6 lg:p-10">
                     <div className="sticky top-24 space-y-8">
                         <div className="flex items-center gap-3">
@@ -133,15 +220,19 @@ export function StoreFullPage({ store, onClose, currentUser, onVoteSuccess, user
                                     <div className="w-1.5 h-1.5 bg-purple-500 rounded-full animate-pulse" />
                                     Tu Opinión
                                 </h3>
-                                <InteractiveRating storeId={store.id} onVoteSuccess={onVoteSuccess} />
+                                <InteractiveRating
+                                    storeId={localStore.id}
+                                    onVoteSuccess={refreshStoreData}
+                                />
                             </div>
                         )}
 
                         <div className="max-h-[600px] overflow-y-auto pr-2 custom-scrollbar">
                             <StoreReviewsList
-                                reviews={store.reviews || []}
+                                reviews={localStore.reviews || []} 
                                 currentUser={currentUser}
-                                onReviewDeleted={onVoteSuccess}
+                                onReviewDeleted={refreshStoreData} 
+                                storeId={localStore.id}
                             />
                         </div>
                     </div>
@@ -153,15 +244,6 @@ export function StoreFullPage({ store, onClose, currentUser, onVoteSuccess, user
 
 export function StoreCard({ store, userLocation, currentUser, onVoteSuccess, userTesting }) {
     const [isPageOpen, setIsPageOpen] = React.useState(false);
-
-    useEffect(() => {
-        console.log('StoreCard.jsx tu usuario: ', currentUser)
-    }, [])
-
-     useEffect(() => {
-        console.log('StoreCard.jsx tu usuario TESTING: ', userTesting)
-    }, [])
-
     const distance = useMemo(() => {
         if (!userLocation || !store.latitude || !store.longitude) return null;
         return getDistance(userLocation.lat, userLocation.lon, store.latitude, store.longitude)?.toFixed(1);

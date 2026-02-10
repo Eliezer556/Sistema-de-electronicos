@@ -16,11 +16,13 @@ class Component(models.Model):
     store = models.ForeignKey(Store, on_delete=models.CASCADE, related_name='products')
     category = models.ForeignKey(Category, on_delete=models.PROTECT, related_name='components')
     name = models.CharField(max_length=255)
-    mpn = models.CharField(max_length=100, unique=True, verbose_name="Manufacturer Part Number")
+    mpn = models.CharField(max_length=100, verbose_name="Manufacturer Part Number")
     description = models.TextField()
     
     # Precios y stock
     price = models.DecimalField(max_digits=10, decimal_places=2)
+    offer_price = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+    is_on_offer = models.BooleanField(default=False)
     stock = models.PositiveIntegerField(default=0)
     
     # Imagen y Ficha Técnica

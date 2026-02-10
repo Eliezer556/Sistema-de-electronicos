@@ -8,6 +8,7 @@ import { CategoryFilter } from './CategoryFilter';
 import { Link } from 'react-router-dom';
 import { Loading } from '../../../components/Loading';
 import { TechnicalFilters } from './TechnicalFilters';
+import { PriceComparison } from './PriceComparison';
 
 export const ProductList = () => {
     const {
@@ -24,6 +25,12 @@ export const ProductList = () => {
     useEffect(() => {
         fetchData();
     }, [fetchData]);
+
+    // Manejador de vista de detalle
+    const handleOpenDetail = (product) => {
+        setSelectedProduct(product);
+        window.scrollTo(0, 0); // Scroll arriba para ver el detalle cómodamente
+    };
 
     if (loading) return <Loading />
 
@@ -46,18 +53,19 @@ export const ProductList = () => {
         );
     }
 
-    // Lógica de renderizado condicional para el detalle
     if (selectedProduct) {
         return (
-            <ProductDetail
-                product={selectedProduct}
-                onBack={() => setSelectedProduct(null)}
-            />
+            <div className="animate-in fade-in duration-500">
+                <ProductDetail
+                    product={selectedProduct}
+                    onBack={() => setSelectedProduct(null)}
+                />
+            </div>
         );
     }
 
     return (
-        <div className="container mx-auto px-6 py-12">
+        <div className="container mx-auto px-6 py-12 animate-in fade-in duration-700">
             <header className="mb-16">
                 <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-10 mb-12">
                     <div className="relative">
@@ -85,7 +93,7 @@ export const ProductList = () => {
                     </div>
                 </div>
 
-                <div className="bg-[#1a1a1a]/50 p-8 rounded-[2rem] border border-gray-800/50 backdrop-blur-sm shadow-inner">
+                <div className="bg-[#1a1a1a]/50 p-8 rounded-[2rem] border border-gray-800/50 backdrop-blur-sm shadow-inner mb-8">
                     <div className="flex items-center gap-3 mb-6">
                         <div className="h-[1px] w-8 bg-purple-500/50"></div>
                         <p className="text-[10px] font-black text-gray-500 uppercase tracking-[0.3em]">
@@ -96,8 +104,8 @@ export const ProductList = () => {
                 </div>
 
                 <TechnicalFilters />
-
             </header>
+            
 
             {products.length === 0 ? (
                 <div className="text-center py-28 bg-[#121212]/30 rounded-[3.5rem] border border-dashed border-gray-800/50">
@@ -122,8 +130,9 @@ export const ProductList = () => {
                         <ProductCard
                             key={product.id}
                             product={product}
-                            onViewDetail={(p) => setSelectedProduct(p)}
+                            onViewDetail={handleOpenDetail}
                         />
+                        
                     ))}
                 </div>
             )}

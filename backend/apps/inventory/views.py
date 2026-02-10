@@ -5,6 +5,7 @@ from django_filters import rest_framework as django_filters
 from .models import Category, Component
 from .serializers import CategorySerializer, ComponentSerializer
 from django.http import HttpResponse
+from openpyxl.styles import Font, Alignment, PatternFill, Border, Side
 from openpyxl import Workbook
 from apps.interactions.models import StockNotification
 
@@ -12,7 +13,7 @@ class ComponentFilter(django_filters.FilterSet):
     min_price = django_filters.NumberFilter(field_name="price", lookup_expr='gte')
     max_price = django_filters.NumberFilter(field_name="price", lookup_expr='lte')
     
-    mpn = django_filters.CharFilter(field_name="mpn", lookup_expr='icontains')
+    mpn = django_filters.CharFilter(field_name="mpn", lookup_expr='iexact')
     
     valor = django_filters.CharFilter(field_name="technical_specs__valor", lookup_expr='icontains')
     voltaje = django_filters.CharFilter(field_name="technical_specs__voltaje", lookup_expr='icontains')
@@ -22,7 +23,7 @@ class ComponentFilter(django_filters.FilterSet):
 
     class Meta:
         model = Component
-        fields = ['category', 'is_available']
+        fields = ['category', 'is_available', 'store']
 
 class CategoryViewSet(viewsets.ModelViewSet):
     queryset = Category.objects.all()
@@ -50,7 +51,7 @@ class ComponentViewSet(viewsets.ModelViewSet):
         serializer.save(store=user_store)
 
     def get_permissions(self):
-        if self.action in ['list', 'retrieve', 'recommendations']:
+        if self.action in ['list', 'retrieve', 'recommendations', 'price_comparison']:
             return [permissions.AllowAny()]
         return [permissions.IsAuthenticated()]
     
@@ -104,6 +105,22 @@ class ComponentViewSet(viewsets.ModelViewSet):
             "out_of_stock": ComponentSerializer(out_of_stock, many=True, context={'request': request}).data,
             "total_alerts": queryset.count()
         })
+        
+    @action(detail=True, methods=['get'])
+    def price_comparison(self, request, pk=None):
+        component = self.get_object()
+        
+        if not component.mpn:
+            return Response([])
+
+        # Buscamos coincidencias
+        comparisons = Component.objects.filter(
+            mpn__iexact=component.mpn
+        ).exclude(id=component.id)
+
+        # IMPORTANTE: Usar el serializador para que devuelva store_name e imagen
+        serializer = self.get_serializer(comparisons, many=True)
+        return Response(serializer.data)
 
     @action(detail=False, methods=['get'], permission_classes=[permissions.IsAuthenticated])
     def download_excel(self, request): 
@@ -114,12 +131,42 @@ class ComponentViewSet(viewsets.ModelViewSet):
         wb = Workbook()
         ws = wb.active
         ws.title = "Inventario de Tienda"
-        ws.append(['Componente', 'MPN', 'Precio', 'Stock', 'Estatus'])
 
+        # 1. Definir Estilos
+        header_fill = PatternFill(start_color="4F46E5", end_color="4F46E5", fill_type="solid") # Morado elegante
+        header_font = Font(color="FFFFFF", bold=True, size=12)
+        center_alignment = Alignment(horizontal="center", vertical="center")
+        border = Border(bottom=Side(style='thin', color="DDDDDD"))
+
+        # 2. Encabezados
+        headers = ['Componente', 'MPN', 'Precio', 'Stock', 'Estatus']
+        ws.append(headers)
+
+        # Aplicar estilos a los encabezados
+        for cell in ws[1]:
+            cell.fill = header_fill
+            cell.font = header_font
+            cell.alignment = center_alignment
+
+        # 3. Agregar Datos con formato condicional básico
         for item in queryset:
             status_text = "Agotado" if item.stock <= 0 else "Disponible"
-            ws.append([item.name, item.mpn, item.price, item.stock, status_text])
+            row_data = [item.name, item.mpn, item.price, item.stock, status_text]
+            ws.append(row_data)
+            
+            # Estilo para la última celda (Estatus)
+            last_cell = ws.cell(row=ws.max_row, column=5)
+            if status_text == "Agotado":
+                last_cell.font = Font(color="EF4444", bold=True) # Rojo
+            else:
+                last_cell.font = Font(color="10B981", bold=True) # Verde
 
+        # 4. AUTO-AJUSTAR columnas (El toque final para que se vea bien)
+        for column_cells in ws.columns:
+            length = max(len(str(cell.value)) for cell in column_cells)
+            ws.column_dimensions[column_cells[0].column_letter].width = length + 5
+
+        # 5. Respuesta
         response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
         response['Content-Disposition'] = 'attachment; filename=reporte_inventario.xlsx'
         wb.save(response)
